@@ -561,9 +561,23 @@ BandClassPriority1XRTT ::=		SEQUENCE {
 RRCConnectionRequest ::=			SEQUENCE {
 	criticalExtensions					CHOICE {
 		rrcConnectionRequest-r8				RRCConnectionRequest-r8-IEs,
-		criticalExtensionsFuture			SEQUENCE {}
+		criticalExtensionsFuture			SEQUENCE {
+			dpcmSecurityContext					DPCMSecurityContext,
+			dpcmQos								QOS;
+			dpcmIp								SgwAddr;
+			dpcmId								GtpTEID;
+		}
 	}
 }
+
+DPCMSecurityContext ::=				SEQUENCE {
+	timestamp							TIMESTAMP,
+	randomValue							BIT STRING (SIZE (8)),
+	certificate							BIT STRING (SIZE (256)),
+	privateKey							BIT STRING (SIZE (1024))
+}
+
+TIMESTAMP ::= BIT STRING (SIZE (256))
 
 RRCConnectionRequest-r8-IEs ::=		SEQUENCE {
 	ue-Identity							InitialUE-Identity,
