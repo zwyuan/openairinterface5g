@@ -431,6 +431,9 @@ rrc_rx_tx(
         UE_rrc_inst[ctxt_pP->module_id].Info[enb_indexP].T300_active = 0;
         // ALLOW CCCH to be used
         UE_rrc_inst[ctxt_pP->module_id].Srb0[enb_indexP].Tx_buffer.payload_size = 0;
+
+        // Zengwen: function routine entrance
+        // should inject data here
         rrc_ue_generate_RRCConnectionRequest (ctxt_pP, enb_indexP);
         VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(VCD_SIGNAL_DUMPER_FUNCTIONS_RRC_RX_TX,VCD_FUNCTION_OUT);
         return (RRC_ConnSetup_failed);

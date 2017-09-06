@@ -89,6 +89,10 @@ rrc_ue_decode_dcch(
   const uint8_t                eNB_indexP
 );
 
+
+// Zengwen: two choices
+// 1. directly supply security key and cert informations
+// 2. include the security key and cert into the ctxt_pP, but it may require modification on all functions
 /** \brief Generate/Encodes RRCConnnectionRequest message at UE
     \param ctxt_pP Running context
     \param eNB_index Index of corresponding eNB/CH*/
