@@ -366,6 +366,49 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
 
   uint8_t i=0,rv[6];
 
+  // Zengwen: element definition for security key variables
+  element_t a, b, c, cu, r, A, B, C;
+  element_t ax, a1cuxy;
+  element_t xy, cuxy;
+
+  element_init_G1(a, pairing);
+  element_init_G1(b, pairing);
+  element_init_G1(c, pairing);
+  element_init_Zr(r, pairing);
+  element_init_G1(A, pairing);
+  element_init_G1(B, pairing);
+  element_init_G1(C, pairing);
+
+  element_init_G1(ax, pairing);
+  element_init_G1(a1cuxy, pairing);
+
+  //temporarily regard p and q are independent
+  //instead of p = 2q ＋ 1
+  element_init_Zr(xy, pairing2);
+  element_init_Zr(cuxy, pairing2);
+  element_init_Zr(cu, pairing2);
+
+  //temporarily regard cu as a random number in Zr
+  //instead of Cu = r^k&^ru
+  element_random(cu);
+  element_random(a);
+  if(verbose) element_printf("sig component a = %B\n", a);
+  element_pow_zn(b, a, y);
+  if(verbose) element_printf("sig component b = %B\n", b);
+  element_pow_zn(ax, a, x);
+  element_mul(xy, x, y);
+  element_mul(cuxy, xy, cu);
+  element_pow_zn(a1cuxy, a, cuxy);
+  element_mul(c, ax, a1cuxy);
+  if(verbose) element_printf("sig component c = %B\n", c);
+
+  //blind the signature
+  element_random(r);
+  element_pow_zn(A, a, r);
+  element_pow_zn(B, b, r);
+  element_pow_zn(C, c, r);
+
+
   if(UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size ==0) {
 
     // Get RRCConnectionRequest, fill random for now
