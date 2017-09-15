@@ -162,6 +162,9 @@ set(CMAKE_C_FLAGS
 set(CMAKE_C_FLAGS
   "${CMAKE_C_FLAGS} -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1 -DHAVE_ARPA_INET_H=1 -DHAVE_SYS_TIME_H=1 -DHAVE_SYS_SOCKET_H=1 -DHAVE_STRERROR=1 -DHAVE_SOCKET=1 -DHAVE_MEMSET=1 -DHAVE_GETTIMEOFDAY=1 -DHAVE_STDLIB_H=1 -DHAVE_MALLOC=1 -DHAVE_LIBSCTP"
 )
+set(CMAKE_C_FLAGS
+  "${CMAKE_C_FLAGS} -I/usr/local/include/pbc -lpbc -lgmp"
+)
 set(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} ${C_FLAGS_PROCESSOR} -std=c++11 "
 )
@@ -1069,6 +1072,22 @@ add_library(PHY ${PHY_SRC})
 
 #Layer 2 library
 #####################
+
+message( STATUS "[Debug] Zengwen: Setting GMP and PBC dependencies" )
+find_library( GMP_LIBRARIES NAMES "gmp" )
+find_path( GMP_INCLUDE_DIR "gmp.h" )
+get_filename_component( GMP_LIB_DIR "${GMP_LIBRARIES}" DIRECTORY )
+find_library( PBC_LIBRARIES NAMES "libpbc.a" )
+find_path( PBC_INCLUDE_DIR "pbc/pbc.h")
+add_library( pbc UNKNOWN IMPORTED )
+set_property( TARGET pbc PROPERTY IMPORTED_LOCATION "${PBC_LIBRARIES}" )
+set_property( TARGET pbc PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${PBC_INCLUDE_DIR}" "${GMP_INCLUDE_DIR}" )
+message( STATUS "[Debug] Zengwen: PBC found at ${PBC_LIBRARIES}" )
+message( STATUS "[Debug] Zengwen: PBC header found at ${PBC_INCLUDE_DIR}" )
+message( STATUS "[Debug] Zengwen: GMP found at ${GMP_LIBRARIES}" )
+message( STATUS "[Debug] Zengwen: GMP header found at ${GMP_INCLUDE_DIR}" )
+
+
 set(MAC_DIR ${OPENAIR2_DIR}/LAYER2/MAC)
 set(RLC_DIR ${OPENAIR2_DIR}/LAYER2/RLC)
 set(RLC_UM_DIR ${OPENAIR2_DIR}/LAYER2/RLC/UM_v9.3.0)
@@ -1077,6 +1096,7 @@ set(RLC_TM_DIR ${OPENAIR2_DIR}/LAYER2/RLC/TM_v9.3.0)
 set(RRC_DIR ${OPENAIR2_DIR}/RRC/LITE)
 set(PDCP_DIR  ${OPENAIR2_DIR}/LAYER2/PDCP_v10.1.0)
 set(L2_SRC
+  ${PBC_INCLUDE_DIR}/pbc/pbc.h
   ${OPENAIR2_DIR}/LAYER2/openair2_proc.c
   ${PDCP_DIR}/pdcp.c
   ${PDCP_DIR}/pdcp_fifo.c
@@ -1155,7 +1175,13 @@ set (ENB_APP_SRC
 add_library(L2
   ${L2_SRC}
   ${MAC_SRC}
-  ${ENB_APP_SRC})
+  ${ENB_APP_SRC}
+  ${GMP_LIBRARIES}
+  ${GMP_INCLUDE_DIR}
+  ${GMP_LIB_DIR}
+  ${PBC_LIBRARIES}
+  ${PBC_INCLUDE_DIR}
+    )
 #  ${OPENAIR2_DIR}/RRC/L2_INTERFACE/openair_rrc_L2_interface.c)
 
 if (FLEXRAN_AGENT_SB_IF)
@@ -1811,6 +1837,7 @@ target_link_libraries (rrh_gw ${T_LIB})
 # A all in one network simulator
 ################
 add_executable(oaisim
+  ${PBC_INCLUDE_DIR}/pbc/pbc.h
   ${rrc_h}
   ${s1ap_h}
   ${x2ap_h}
@@ -1846,17 +1873,21 @@ target_link_libraries (oaisim
   -Wl,--end-group )
 
 target_link_libraries (oaisim ${LIBXML2_LIBRARIES} ${LAPACK_LIBRARIES})
-target_link_libraries (oaisim pthread m ${CONFIG_LIBRARIES} rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}  ${NETTLE_LIBRARIES} sctp 
+message( STATUS "[Debug] Zengwen: Adding linking libs to oaisim" )
+target_link_libraries (oaisim pthread ${GMP_LIBRARIES} ${PBC_LIBRARIES} m ${CONFIG_LIBRARIES} rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}  ${NETTLE_LIBRARIES} sctp 
   ${ATLAS_LIBRARIES} ${XFORMS_LIBRARIES} ${OPENPGM_LIBRARIES})
 #Force link with forms, regardless XFORMS option
 target_link_libraries (oaisim forms)
 target_link_libraries (oaisim ${T_LIB})
 
+# message( STATUS "[Debug] Zengwen: Adding linking libs to oaisim" )
+# target_link_libraries (oaisim ${GMP_LIBRARIES} ${PBC_LIBRARIES})
 
 
 # A all in one network simulator
 ################
 add_executable(oaisim_nos1
+  ${PBC_INCLUDE_DIR}/pbc/pbc.h
   ${rrc_h}
   ${s1ap_h}
   ${x2ap_h}
@@ -1887,7 +1918,8 @@ target_link_libraries (oaisim_nos1
   -Wl,--end-group )
 
 target_link_libraries (oaisim_nos1 ${LIBXML2_LIBRARIES} ${LAPACK_LIBRARIES})
-target_link_libraries (oaisim_nos1 pthread m ${CONFIG_LIBRARIES} rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}  ${NETTLE_LIBRARIES}  
+message( STATUS "[Debug] Zengwen: Adding linking libs to oaisim_nos1" )
+target_link_libraries (oaisim_nos1 pthread ${GMP_LIBRARIES} ${PBC_LIBRARIES} m ${CONFIG_LIBRARIES} rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}  ${NETTLE_LIBRARIES}  
   ${ATLAS_LIBRARIES} ${XFORMS_LIBRARIES} ${OPENPGM_LIBRARIES} ${PROTOBUF_LIB} ${CMAKE_DL_LIBS} ${LIBYAML_LIBRARIES})
 #Force link with forms, regardless XFORMS option
 target_link_libraries (oaisim_nos1 forms)
@@ -1895,6 +1927,9 @@ target_link_libraries (oaisim_nos1 forms)
 #message("protobuflib is  ${PROTOBUF_LIB}")
 
 target_link_libraries (oaisim_nos1 ${T_LIB})
+
+# message( STATUS "[Debug] Zengwen: Adding linking libs to oaisim_nos1" )
+# target_link_libraries (oaisim gmp pbc)
 
 
 # Unitary tests for each piece of L1: example, mbmssim is MBMS L1 simulator
@@ -2177,4 +2212,5 @@ endforeach(file)
 ADD_CUSTOM_TARGET(oarf
    DEPENDS ${OCT_FILES}
 )
+
 
