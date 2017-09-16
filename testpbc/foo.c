@@ -24,6 +24,21 @@ int main(void)
 
   pbc_param_clear(param);
 
+  element_init_G2(g, pairing);
+  element_init_G2(X, pairing);
+  element_init_G2(Y, pairing);
+  element_init_Zr(x, pairing2);
+  element_init_Zr(y, pairing2);
+
+  element_random(x);
+  element_random(y);
+  printf("g=%lu X=%lu Y=%lu x=%lu y=%lu\n",sizeof(g),sizeof(X),sizeof(Y),sizeof(x),sizeof(y));
+
+  //system variable & public key generation
+  element_random(g);
+  if(verbose) element_printf("system parameter g = %B\n", g);
+  element_pow_zn(X, g, x);
+  element_pow_zn(Y, g, y);
 
   element_t a, b, c, cu, r, A, B, C;
   element_t ax, a1cuxy;
