@@ -160,20 +160,17 @@ static uint8_t check_trigger_meas_event(
 static void decode_MBSFNAreaConfiguration(module_id_t module_idP, uint8_t eNB_index, frame_t frameP,uint8_t mbsfn_sync_area);
 #endif
 
-
-
-
 // Zengwen: variable declaration for PBC
 
 element_t g, X, Y, x, y;
 pairing_t pairing;
 pairing_t pairing2;
 
+// these are shared variables that should be put into the rrc connection request criticalextension field
+// and be verified later at the eNB side as the rrc connection request goes on.
+unsigned char *a, *b, *c, *cU;
+
 int verbose = 1;
-
-
-
-
 
 /*------------------------------------------------------------------------------*/
 /* to avoid gcc warnings when compiling with certain options */
@@ -376,45 +373,13 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   UE_rrc_inst[ue_mod_idP].num_active_cba_groups = 0;
 #endif
 
-  return 0;
-}
-
-
-static inline void pbc_single_pairing_init(pairing_t pairing, int argc, char *argv) {
-  char s[16384];
-  FILE *fp = stdin;
-
-  if (argc > 1) {
-    fp = fopen(argv, "r");
-    if (!fp) pbc_die("error opening %s", argv);
-  }
-  size_t count = fread(s, 1, 16384, fp);
-  if (!count) pbc_die("input error");
-  fclose(fp);
-
-  if (pairing_init_set_buf(pairing, s, count)) pbc_die("pairing init failed");
-}
-
-
-//-----------------------------------------------------------------------------
-void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index )
-{
-
-  uint8_t i=0,rv[6];
-
-  // Zengwen: element definition for security key variables
-
-
-  LOG_W(RRC, "Zengwen: INIT: security key context \n");
-  // char s[16384];
+  LOG_W(RRC, "Zengwen: INIT: DPCM security key context in function openair_rrc_ue_init() \n");
 
   //printf("Initializing pairing parameters...\n");
 
   int rbits = 160;
   int qbits = 512;
   pbc_param_t param;
-
-  // printf("rbits=%d qbits=%d\n",rbits,qbits);
 
   pbc_param_init_a_gen(param, rbits, qbits);
   pairing_init_pbc_param(pairing, param);
@@ -424,18 +389,40 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
 
   pbc_param_clear(param);
 
+  element_init_G2(g, pairing);
+  element_init_G2(X, pairing);
+  element_init_G2(Y, pairing);
+  element_init_Zr(x, pairing2);
+  element_init_Zr(y, pairing2);
 
-  element_t a, b, c, cu, r, A, B, C;
+  element_random(x);
+  element_random(y);
+
+  printf("g=%lu X=%lu Y=%lu x=%lu y=%lu\n",sizeof(g),sizeof(X),sizeof(Y),sizeof(x),sizeof(y));
+
+  //system variable & public key generation
+  element_random(g);
+  if(verbose) element_printf("system parameter g = %B\n", g);
+  element_pow_zn(X, g, x);
+  element_pow_zn(Y, g, y);
+
+  //printf("Generating keys.....\n");
+  LOG_W(RRC, "Zengwen: INIT: DPCM Generating keys... in function openair_rrc_ue_init() \n");
+
+
+  element_t UE_a, UE_b, UE_c, UE_cU, r, UE_A, UE_B, UE_C;
   element_t ax, a1cuxy;
   element_t xy, cuxy;
 
-  element_init_G1(a, pairing);
-  element_init_G1(b, pairing);
-  element_init_G1(c, pairing);
+  LOG_W(RRC, "Zengwen: [DPCM][424] variable def in function openair_rrc_ue_init() \n");
+
+  element_init_G1(UE_a, pairing);
+  element_init_G1(UE_b, pairing);
+  element_init_G1(UE_c, pairing);
   element_init_Zr(r, pairing);
-  element_init_G1(A, pairing);
-  element_init_G1(B, pairing);
-  element_init_G1(C, pairing);
+  element_init_G1(UE_A, pairing);
+  element_init_G1(UE_B, pairing);
+  element_init_G1(UE_C, pairing);
 
   element_init_G1(ax, pairing);
   element_init_G1(a1cuxy, pairing);
@@ -444,29 +431,86 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
   //instead of p = 2q ＋ 1
   element_init_Zr(xy, pairing2);
   element_init_Zr(cuxy, pairing2);
-  element_init_Zr(cu, pairing2);
+  element_init_Zr(UE_cU, pairing2);
 
-  //temporarily regard cu as a random number in Zr
+
+  LOG_W(RRC, "Zengwen: [DPCM][442] Initializing in function openair_rrc_ue_init() \n");
+
+    //temporarily regard cu as a random number in Zr
   //instead of Cu = r^k&^ru
-  element_random(cu);
-  element_random(a);
-  element_printf("sig component a = %B\n", a);
-  element_pow_zn(b, a, y);
-  element_printf("sig component b = %B\n", b);
-  element_pow_zn(ax, a, x);
+  element_random(UE_cU);
+  element_random(UE_a);
+  if(verbose) element_printf("sig component UE_a = %B\n", UE_a);
+  element_pow_zn(UE_b, UE_a, y);
+  if(verbose) element_printf("sig component UE_b = %B\n", UE_b);
+  element_pow_zn(ax, UE_a, x);
   element_mul(xy, x, y);
-  element_mul(cuxy, xy, cu);
-  element_pow_zn(a1cuxy, a, cuxy);
-  element_mul(c, ax, a1cuxy);
-  element_printf("sig component c = %B\n", c);
+  element_mul(cuxy, xy, UE_cU);
+  element_pow_zn(a1cuxy, UE_a, cuxy);
+  element_mul(UE_c, ax, a1cuxy);
+  if(verbose) element_printf("sig component UE_c = %B\n", UE_c);
+
+  LOG_W(RRC, "Zengwen: [DPCM][458] Initializing in function openair_rrc_ue_init() \n");
 
   //blind the signature
   element_random(r);
-  element_pow_zn(A, a, r);
-  element_pow_zn(B, b, r);
-  element_pow_zn(C, c, r);
+  element_pow_zn(UE_A, UE_a, r);
+  element_pow_zn(UE_B, UE_b, r);
+  element_pow_zn(UE_C, UE_c, r);
 
-  LOG_I( RRC, "Zengwen: debug 469, completed element computation \n");
+  LOG_W(RRC, "Zengwen: [DPCM][466] blind the signature in function openair_rrc_ue_init() \n");
+  
+  //clear meta elements
+  element_clear(ax);
+  element_clear(a1cuxy);
+  element_clear(xy);
+  element_clear(cuxy);
+  element_clear(r);
+  element_clear(UE_a);
+  element_clear(UE_b);
+  element_clear(UE_c);
+
+  LOG_W(RRC, "Zengwen: [DPCM][480] clear meta elements in function openair_rrc_ue_init() \n");
+
+  //signature compress
+  int n = pairing_length_in_bytes_compressed_G1(pairing);
+  int m = pairing_length_in_bytes_Zr(pairing2);
+  a = pbc_malloc(n);
+  b = pbc_malloc(n);
+  c = pbc_malloc(n);
+  cU = pbc_malloc(m);
+  element_to_bytes_compressed(a, UE_A);
+  element_to_bytes_compressed(b, UE_B);
+  element_to_bytes_compressed(c, UE_C);
+  element_to_bytes(cU, UE_cU);
+
+  LOG_W(RRC, "Zengwen: [DPCM][466] signature compress in function openair_rrc_ue_init() \n");
+
+
+  if(verbose) element_printf("[DPCM][UE] sig component UE_A = %B\n", UE_A);
+  if(verbose) element_printf("[DPCM][UE] sig component UE_B = %B\n", UE_B);
+  if(verbose) element_printf("[DPCM][UE] sig component UE_C = %B\n", UE_C);
+  if(verbose) element_printf("[DPCM][UE] sig component UE_cU = %B\n", UE_cU);
+  if(verbose) element_printf("[DPCM][UE] sig component a = %B\n", a);
+  if(verbose) element_printf("[DPCM][UE] sig component b = %B\n", b);
+  if(verbose) element_printf("[DPCM][UE] sig component c = %B\n", c);
+  if(verbose) element_printf("[DPCM][UE] sig component cU = %B\n", cU);
+
+  // Zengwen: TODO
+  LOG_W(RRC, "Zengwen: TODO: put DPCM keys into protocol_ctxt_t ctxt_pP. in function openair_rrc_ue_init() \n");
+
+
+  return 0;
+}
+
+
+//-----------------------------------------------------------------------------
+void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index )
+{
+
+  uint8_t i=0,rv[6];
+
+  LOG_I( RRC, "Zengwen: [DPCM][497] inside RRC connection request \n");
 
   if(UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size ==0) {
 
