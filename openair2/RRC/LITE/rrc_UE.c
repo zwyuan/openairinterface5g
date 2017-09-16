@@ -31,6 +31,17 @@
 #define RRC_UE
 #define RRC_UE_C
 
+/*
+ * Zengwen: Security headers required by PBC library
+ */
+#include "pbc.h"
+#include "pbc_test.h"
+#include <getopt.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+
+
 #include "assertions.h"
 #include "hashtable.h"
 #include "asn1_conversions.h"
@@ -151,6 +162,14 @@ static void decode_MBSFNAreaConfiguration(module_id_t module_idP, uint8_t eNB_in
 
 
 
+
+// Zengwen: variable declaration for PBC
+
+element_t g, X, Y, x, y;
+pairing_t pairing;
+pairing_t pairing2;
+
+int verbose = 1;
 
 
 
@@ -360,6 +379,23 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   return 0;
 }
 
+
+static inline void pbc_single_pairing_init(pairing_t pairing, int argc, char *argv) {
+  char s[16384];
+  FILE *fp = stdin;
+
+  if (argc > 1) {
+    fp = fopen(argv, "r");
+    if (!fp) pbc_die("error opening %s", argv);
+  }
+  size_t count = fread(s, 1, 16384, fp);
+  if (!count) pbc_die("input error");
+  fclose(fp);
+
+  if (pairing_init_set_buf(pairing, s, count)) pbc_die("pairing init failed");
+}
+
+
 //-----------------------------------------------------------------------------
 void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index )
 {
@@ -367,6 +403,28 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
   uint8_t i=0,rv[6];
 
   // Zengwen: element definition for security key variables
+
+
+  LOG_W(RRC, "Zengwen: INIT: security key context \n");
+  // char s[16384];
+
+  //printf("Initializing pairing parameters...\n");
+
+  int rbits = 160;
+  int qbits = 512;
+  pbc_param_t param;
+
+  // printf("rbits=%d qbits=%d\n",rbits,qbits);
+
+  pbc_param_init_a_gen(param, rbits, qbits);
+  pairing_init_pbc_param(pairing, param);
+
+  pbc_param_init_a_gen(param, rbits, qbits);
+  pairing_init_pbc_param(pairing2, param);
+
+  pbc_param_clear(param);
+
+
   element_t a, b, c, cu, r, A, B, C;
   element_t ax, a1cuxy;
   element_t xy, cuxy;
@@ -392,15 +450,15 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
   //instead of Cu = r^k&^ru
   element_random(cu);
   element_random(a);
-  if(verbose) element_printf("sig component a = %B\n", a);
+  element_printf("sig component a = %B\n", a);
   element_pow_zn(b, a, y);
-  if(verbose) element_printf("sig component b = %B\n", b);
+  element_printf("sig component b = %B\n", b);
   element_pow_zn(ax, a, x);
   element_mul(xy, x, y);
   element_mul(cuxy, xy, cu);
   element_pow_zn(a1cuxy, a, cuxy);
   element_mul(c, ax, a1cuxy);
-  if(verbose) element_printf("sig component c = %B\n", c);
+  element_printf("sig component c = %B\n", c);
 
   //blind the signature
   element_random(r);
@@ -408,6 +466,7 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
   element_pow_zn(B, b, r);
   element_pow_zn(C, c, r);
 
+  LOG_I( RRC, "Zengwen: debug 469, completed element computation \n");
 
   if(UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size ==0) {
 
@@ -3624,16 +3683,22 @@ static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_in
 			   0
 #endif
 			   );
+
+  // Zengwen: debug RRC connection request
+  LOG_I( RRC, "Zengwen: About to enter RRC connection request \n");
+
 	// After SI is received, prepare RRCConnectionRequest
 #if defined(Rel10) || defined(Rel14)
-
+  LOG_I( RRC, "Zengwen: debug 3691 \n");
 	if (UE_rrc_inst[ctxt_pP->module_id].MBMS_flag < 3) // see -Q option
 #endif
 #if !(defined(ENABLE_ITTI) && defined(ENABLE_USE_MME))
+    LOG_I( RRC, "Zengwen: debug 3695 \n");
 	  rrc_ue_generate_RRCConnectionRequest( ctxt_pP, eNB_index );
 	
 #endif
 	
+  LOG_I( RRC, "Zengwen: debug 3700 \n");
 	if (UE_rrc_inst[ctxt_pP->module_id].Info[eNB_index].State == RRC_IDLE) {
 	  LOG_I( RRC, "[UE %d] Received SIB1/SIB2/SIB3 Switching to RRC_SI_RECEIVED\n", ctxt_pP->module_id );
 	  UE_rrc_inst[ctxt_pP->module_id].Info[eNB_index].State = RRC_SI_RECEIVED;
