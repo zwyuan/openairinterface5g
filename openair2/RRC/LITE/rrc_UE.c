@@ -127,6 +127,9 @@ extern void pdcp_config_set_security(
 
 void rrc_ue_process_securityModeCommand( const protocol_ctxt_t* const ctxt_pP, SecurityModeCommand_t* const securityModeCommand, const uint8_t eNB_index );
 
+// Zengwen: define time logging function
+long dpcm_log_timestamp();
+
 static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index );
 
 static int decode_SIB1( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index, const uint8_t rsrq, const uint8_t rsrp );
@@ -373,7 +376,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   UE_rrc_inst[ue_mod_idP].num_active_cba_groups = 0;
 #endif
 
-  LOG_W(RRC, "Zengwen: INIT: DPCM security key context in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "Zengwen: [%ld ms] INIT: DPCM security key context in function openair_rrc_ue_init() \n", dpcm_log_timestamp());
 
   //printf("Initializing pairing parameters...\n");
 
@@ -407,7 +410,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_pow_zn(Y, g, y);
 
   //printf("Generating keys.....\n");
-  LOG_W(RRC, "Zengwen: INIT: DPCM Generating keys... in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "Zengwen: [%ld ms] INIT: DPCM Generating keys... in function openair_rrc_ue_init() \n", dpcm_log_timestamp());
 
 
   element_t UE_a, UE_b, UE_c, UE_cU, r, UE_A, UE_B, UE_C;
@@ -484,23 +487,33 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_to_bytes_compressed(c, UE_C);
   element_to_bytes(cU, UE_cU);
 
-  LOG_W(RRC, "Zengwen: [DPCM][466] signature compress in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "Zengwen: [DPCM][487][%ld ms] signature compress in function openair_rrc_ue_init() \n", dpcm_log_timestamp());
+
+  printf("a=%lu \n",sizeof(a));
 
 
-  if(verbose) element_printf("[DPCM][UE] sig component UE_A = %B\n", UE_A);
-  if(verbose) element_printf("[DPCM][UE] sig component UE_B = %B\n", UE_B);
-  if(verbose) element_printf("[DPCM][UE] sig component UE_C = %B\n", UE_C);
-  if(verbose) element_printf("[DPCM][UE] sig component UE_cU = %B\n", UE_cU);
-  if(verbose) element_printf("[DPCM][UE] sig component a = %B\n", a);
-  if(verbose) element_printf("[DPCM][UE] sig component b = %B\n", b);
-  if(verbose) element_printf("[DPCM][UE] sig component c = %B\n", c);
-  if(verbose) element_printf("[DPCM][UE] sig component cU = %B\n", cU);
+  // if(verbose) element_printf("[DPCM][UE] sig component UE_A = %B\n", UE_A);
+  // if(verbose) element_printf("[DPCM][UE] sig component UE_B = %B\n", UE_B);
+  // if(verbose) element_printf("[DPCM][UE] sig component UE_C = %B\n", UE_C);
+  // if(verbose) element_printf("[DPCM][UE] sig component UE_cU = %B\n", UE_cU);
+  // if(verbose) element_printf("[DPCM][UE] sig component a = %B\n", a);
+  // if(verbose) element_printf("[DPCM][UE] sig component b = %B\n", b);
+  // if(verbose) element_printf("[DPCM][UE] sig component c = %B\n", c);
+  // if(verbose) element_printf("[DPCM][UE] sig component cU = %B\n", cU);
 
   // Zengwen: TODO
   LOG_W(RRC, "Zengwen: TODO: put DPCM keys into protocol_ctxt_t ctxt_pP. in function openair_rrc_ue_init() \n");
 
 
   return 0;
+}
+
+// Zengwen: for logging DPCM performance
+long dpcm_log_timestamp() {
+    // LOG_W(RRC, "Zengwen: [TIMESTAMP] I am called \n");
+    struct timeval ts; // time struct
+    gettimeofday(&ts, NULL); // get the current epoch timestamp
+    return ts.tv_sec * 1000 + ts.tv_usec / 1000;
 }
 
 
@@ -3729,20 +3742,20 @@ static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_in
 			   );
 
   // Zengwen: debug RRC connection request
-  LOG_I( RRC, "Zengwen: About to enter RRC connection request \n");
+  LOG_W( RRC, "Zengwen: [%ld ms] About to enter RRC connection request \n", dpcm_log_timestamp());
 
 	// After SI is received, prepare RRCConnectionRequest
 #if defined(Rel10) || defined(Rel14)
-  LOG_I( RRC, "Zengwen: debug 3691 \n");
+  LOG_W( RRC, "Zengwen: debug 3691 \n");
 	if (UE_rrc_inst[ctxt_pP->module_id].MBMS_flag < 3) // see -Q option
 #endif
 #if !(defined(ENABLE_ITTI) && defined(ENABLE_USE_MME))
-    LOG_I( RRC, "Zengwen: debug 3695 \n");
+    LOG_W( RRC, "Zengwen: debug 3695 \n");
 	  rrc_ue_generate_RRCConnectionRequest( ctxt_pP, eNB_index );
 	
 #endif
 	
-  LOG_I( RRC, "Zengwen: debug 3700 \n");
+  LOG_W( RRC, "Zengwen: debug 3700 \n");
 	if (UE_rrc_inst[ctxt_pP->module_id].Info[eNB_index].State == RRC_IDLE) {
 	  LOG_I( RRC, "[UE %d] Received SIB1/SIB2/SIB3 Switching to RRC_SI_RECEIVED\n", ctxt_pP->module_id );
 	  UE_rrc_inst[ctxt_pP->module_id].Info[eNB_index].State = RRC_SI_RECEIVED;
@@ -4589,7 +4602,9 @@ void *rrc_ue_task( void *args_p )
 
       if (rrc_get_state(ue_mod_id) == RRC_STATE_INACTIVE) {
         // have a look at MAC/main.c void dl_phy_sync_success(...)
+        LOG_W(RRC, "Zengwen: [DPCM][4592][%ld ms] RRC state == IDLE, call openair_rrc_ue_init() \n", dpcm_log_timestamp());
         openair_rrc_ue_init(ue_mod_id,0);
+        LOG_W(RRC, "Zengwen: [DPCM][4592][%ld ms] Return from openair_rrc_ue_init() \n", dpcm_log_timestamp());
       }
 
       /* Save cell selection criterion */
