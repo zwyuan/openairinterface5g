@@ -1012,8 +1012,24 @@ CellInfoUTRA-TDD-r10 ::=			SEQUENCE {
 RRCConnectionRequest ::=			SEQUENCE {
 	criticalExtensions					CHOICE {
 		rrcConnectionRequest-r8				RRCConnectionRequest-r8-IEs,
-		criticalExtensionsFuture			SEQUENCE {}
+		criticalExtensionsFuture			SEQUENCE {
+			dpcmStates							DPCMStates
+		}
 	}
+}
+
+DPCMStates ::=						SEQUENCE {
+	dpcmSecurityContext					DPCMSecurityContext,
+	dpcmQos								qos,
+	dpcmIp								sgw_addr,
+	dpcmId								gtp_teid
+}
+
+DPCMSecurityContext ::=				SEQUENCE {
+	timestamp							TIMESTAMP,
+	randomValue							BIT STRING (SIZE (8)),
+	certificate							BIT STRING (SIZE (256)),
+	privateKey							BIT STRING (SIZE (1024))
 }
 
 RRCConnectionRequest-r8-IEs ::=		SEQUENCE {

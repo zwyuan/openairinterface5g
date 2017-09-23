@@ -562,12 +562,16 @@ RRCConnectionRequest ::=			SEQUENCE {
 	criticalExtensions					CHOICE {
 		rrcConnectionRequest-r8				RRCConnectionRequest-r8-IEs,
 		criticalExtensionsFuture			SEQUENCE {
-			dpcmSecurityContext					DPCMSecurityContext,
-			dpcmQos								QOS;
-			dpcmIp								SgwAddr;
-			dpcmId								GtpTEID;
+			dpcmStates							DPCMStates
 		}
 	}
+}
+
+DPCMStates ::=						SEQUENCE {
+	dpcmSecurityContext					DPCMSecurityContext,
+	dpcmQos								qos,
+	dpcmIp								sgw_addr,
+	dpcmId								gtp_teid
 }
 
 DPCMSecurityContext ::=				SEQUENCE {
