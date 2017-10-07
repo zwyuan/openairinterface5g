@@ -13,14 +13,21 @@ case ${answer:0:1} in
         cd ~/oai/openairinterface5g
         ./cmake_targets/build_oai -c
         ./cmake_targets/build_oai --oaisim --noS1
-        source oaienv
-        cd cmake_targets/tools
-        source init_nas_nos1
-        if [ "$logging" = 1 ]; then
-            cat /dev/null > ~/oai/openairinterface5g/run_enb_ue_virt_noS1.log
-            ./run_enb_ue_virt_noS1 &> ~/oai/openairinterface5g/run_enb_ue_virt_noS1.log
+
+        # depends on whether the build succeeds
+        if [ $? = 0 ]; then
+            echo "Build succeeded."
+            source oaienv
+            cd cmake_targets/tools
+            source init_nas_nos1
+            if [ "$logging" = 1 ]; then
+                cat /dev/null > ~/oai/openairinterface5g/run_enb_ue_virt_noS1.log
+                ./run_enb_ue_virt_noS1 &> ~/oai/openairinterface5g/run_enb_ue_virt_noS1.log
+            else
+                ./run_enb_ue_virt_noS1
+            fi
         else
-            ./run_enb_ue_virt_noS1
+            echo "Build failed, abort"
         fi
     ;;
     * )
