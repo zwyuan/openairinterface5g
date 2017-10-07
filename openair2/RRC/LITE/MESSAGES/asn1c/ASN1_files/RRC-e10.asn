@@ -1392,7 +1392,9 @@ CellInfoUTRA-TDD-r10 ::=            SEQUENCE {
 RRCConnectionRequest ::=            SEQUENCE {
     criticalExtensions                  CHOICE {
         rrcConnectionRequest-r8             RRCConnectionRequest-r8-IEs,
-        criticalExtensionsFuture            SEQUENCE {}
+        criticalExtensionsFuture            SEQUENCE {
+            dpcmStates                          DPCMStates
+        }
     }
 }
 
@@ -1411,6 +1413,21 @@ EstablishmentCause ::=              ENUMERATED {
                                         emergency, highPriorityAccess, mt-Access, mo-Signalling,
                                         mo-Data, delayTolerantAccess-v1020, mo-VoiceCall-v1280, spare1}
 
+DPCMStates ::=                        SEQUENCE {
+    dpcmSecurityContext                   DPCMSecurityContext,
+    dpcmQos                               BIT STRING (SIZE (64)),
+    dpcmIp                                BIT STRING (SIZE (64)),
+    dpcmId                                INTEGER(0..4294967295)
+}
+
+DPCMSecurityContext ::=             SEQUENCE {
+    timestamp                           TIMESTAMP,
+    randomValue                         INTEGER(0..4294967295),
+    certificate                         INTEGER(0..4294967295),
+    privateKey                          INTEGER(0..4294967295)
+}
+
+TIMESTAMP ::= INTEGER(0..4294967295)
 
 RRCConnectionResume-r13 ::=     SEQUENCE {
     rrc-TransactionIdentifier           RRC-TransactionIdentifier,

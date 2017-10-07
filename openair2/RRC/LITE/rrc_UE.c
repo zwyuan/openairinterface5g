@@ -129,6 +129,7 @@ void rrc_ue_process_securityModeCommand( const protocol_ctxt_t* const ctxt_pP, S
 
 // Zengwen: define time logging function
 long dpcm_log_timestamp();
+struct rrc_eNB_ue_context_s*   const ue_context_pP_dpcm_cache;
 
 static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index );
 
@@ -547,7 +548,12 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
       do_RRCConnectionRequest(
         ctxt_pP->module_id,
         (uint8_t*)UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.Payload,
-        rv);
+        rv
+#if defined(DPCM)
+        ,
+        ue_context_pP_dpcm_cache
+#endif
+        );
 
     LOG_I(RRC,"[UE %d] : Frame %d, Logical Channel UL-CCCH (SRB0), Generating RRCConnectionRequest (bytes %d, eNB %d)\n",
           ctxt_pP->module_id, ctxt_pP->frame, UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size, eNB_index);
@@ -630,6 +636,8 @@ static void rrc_ue_generate_RRCConnectionSetupComplete( const protocol_ctxt_t* c
 		size,
 		buffer,
 		PDCP_TRANSMISSION_MODE_CONTROL);
+
+  LOG_W(RRC, "[Zengwen][DPCM][%ld ms] function rrc_ue_generate_RRCConnectionSetupComplete() \n", dpcm_log_timestamp());
 }
 
 //-----------------------------------------------------------------------------

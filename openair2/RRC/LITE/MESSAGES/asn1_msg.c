@@ -1212,19 +1212,26 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
 
 #if defined(DPCM)
   // Zengwen: if use DPCM, put the DPCM states in the rrc connection request message
-  LOG_W(RRC,"[Zengwen][DPCM] The DPCM var is defined and found in asn1_msg.c\n");
+  LOG_W(RRC,"[Zengwen][DPCM] The DPCM var is defined and found in do_RRCConnectionRequest(), asn1_msg.c\n");
 
 #ifdef USER_MODE
-  LOG_W(RRC,"[Zengwen][UE] RRCConnectionRequest encoding DPCM states in the criticalExtensions\n");
+  LOG_W(RRC,"[Zengwen][UE] RRCConnectionRequest encoding DPCM states in the criticalExtensions in do_RRCConnectionRequest(), asn1_msg.c\n");
 #endif
+  int len = sizeof(struct transport_layer_addr_s);
+  BIT_STRING_t * sgw_addr = malloc(len);
+  memcpy(sgw_addr, &ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.sgw_addr, len);
 
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmQos = ue_context_pP_dpcm_cache->ue_context.e_rab[i].param.qos;
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmIp = ue_context_pP_dpcm_cache->ue_context.e_rab[i].param.sgw_addr;
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmId = ue_context_pP_dpcm_cache->ue_context.e_rab[i].param.gtp_teid;
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.timestamp =  rv[0];
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.randomValue = rv[0];
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.certificate = rv[0];
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.privateKey = rv[0];
+  len = sizeof(struct e_rab_level_qos_parameter_s);
+  BIT_STRING_t * qos = malloc(len);
+  memcpy(qos, &ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.qos, len);
+
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmQos = *qos;
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp = *sgw_addr;
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmId = ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.gtp_teid;
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.timestamp =  rv[0];
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.randomValue = rv[0];
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.certificate = rv[0];
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.privateKey = rv[0];
 #endif
 
   enc_rval = uper_encode_to_buffer(&asn_DEF_UL_CCCH_Message,
