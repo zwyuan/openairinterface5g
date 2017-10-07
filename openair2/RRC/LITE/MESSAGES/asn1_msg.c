@@ -1153,7 +1153,14 @@ uint8_t do_SIB23(uint8_t Mod_id,
   return((enc_rval.encoded+7)/8);
 }
 
-uint8_t do_RRCConnectionRequest(uint8_t Mod_id, uint8_t *buffer,uint8_t *rv)
+uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
+                                uint8_t *buffer,
+                                uint8_t *rv
+#if defined(DPCM)
+                                ,
+                                rrc_eNB_ue_context_t*  const ue_context_pP_dpcm_cache
+#endif
+                                );
 {
 
   asn_enc_rval_t enc_rval;
@@ -1203,6 +1210,22 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id, uint8_t *buffer,uint8_t *rv)
   rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.spare.size=1;
   rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.spare.bits_unused = 7;
 
+#if defined(DPCM)
+  // Zengwen: if use DPCM, put the DPCM states in the rrc connection request message
+  LOG_W(RRC,"[Zengwen][DPCM] The DPCM var is defined and found in asn1_msg.c\n");
+
+#ifdef USER_MODE
+  LOG_W(RRC,"[Zengwen][UE] RRCConnectionRequest encoding DPCM states in the criticalExtensions\n");
+#endif
+
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmQos = ue_context_pP_dpcm_cache->ue_context.e_rab[i].param.qos;
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmIp = ue_context_pP_dpcm_cache->ue_context.e_rab[i].param.sgw_addr;
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmId = ue_context_pP_dpcm_cache->ue_context.e_rab[i].param.gtp_teid;
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.timestamp =  rv[0];
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.randomValue = rv[0];
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.certificate = rv[0];
+  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmSecurityContext.privateKey = rv[0];
+#endif
 
   enc_rval = uper_encode_to_buffer(&asn_DEF_UL_CCCH_Message,
                                    (void*)&ul_ccch_msg,
