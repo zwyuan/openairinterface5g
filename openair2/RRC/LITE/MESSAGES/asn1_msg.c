@@ -1160,7 +1160,7 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
                                 ,
                                 rrc_eNB_ue_context_t*  const ue_context_pP_dpcm_cache
 #endif
-                                );
+                                )
 {
 
   asn_enc_rval_t enc_rval;
