@@ -39,7 +39,7 @@ set_openair_env
 #variables for UE data generation
 gen_nvram_path=$OPENAIR_DIR/targets/bin
 conf_nvram_path=$OPENAIR_DIR/openair3/NAS/TOOLS/ue_eurecom_test_sfr.conf
-
+DPCM="True"
 MSC_GEN="False"
 XFORMS="True"
 FLEXRAN_AGENT_SB_IF="True"
