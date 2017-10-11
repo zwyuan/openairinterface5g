@@ -30,6 +30,16 @@
 #define RRC_ENB
 #define RRC_ENB_C
 
+/*
+ * Zengwen: Security headers required by PBC library
+ */
+#include "pbc.h"
+#include "pbc_test.h"
+#include <getopt.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/time.h>
+
 #include "defs.h"
 #include "extern.h"
 #include "assertions.h"
@@ -110,6 +120,71 @@ extern void*                        bigphys_malloc(int);
 extern uint16_t                     two_tier_hexagonal_cellIds[7];
 
 mui_t                               rrc_eNB_mui = 0;
+
+
+// Zengwen: verify DPCM security contexts
+int verify_dpcm_states(dpcmStates)
+{
+  rval = 0
+  element_t cu, A, B, C;
+  element_init_G1(A, pairing);
+  element_init_G1(B, pairing);
+  element_init_G1(C, pairing);
+  element_init_Zr(cu, pairing2);
+  
+  element_from_bytes_compressed(A, da);
+  element_from_bytes_compressed(B, db);
+  element_from_bytes_compressed(C, dc);
+  element_from_bytes(cu, dcu);
+ 
+  //verification I
+  element_t exbcu;
+  element_t tmp1, tmp2, right, left;
+  element_init_GT(exbcu, pairing);
+  element_init_GT(tmp1, pairing);
+  element_init_GT(tmp2, pairing);
+  element_init_GT(right, pairing);
+  element_init_GT(left, pairing);
+
+  element_pairing(tmp1, X, A);
+  element_pairing(tmp2, X, B);
+  element_pow_zn(exbcu, tmp2, cu);
+  element_mul(left, tmp1, exbcu);
+  element_pairing(right, g, C);
+
+  if (!element_cmp(left, right)) {
+      LOG_W(RRC, "[Zengwen][DPCM] Part 1 verifies on the eNB side in rrc_eNB_decode_ccch()\n");
+  } else {
+      LOG_W(RRC, "[Zengwen][DPCM] *BUG* part 1 does not verify in rrc_eNB_decode_ccch()\n");
+      rval = -1
+  }
+
+  //verification II
+  element_pairing(left, A, Y);
+  element_pairing(right, g, B);
+
+  if (!element_cmp(left, right)) {
+      LOG_W(RRC, "[Zengwen][DPCM] Part 2 verifies on the eNB side in rrc_eNB_decode_ccch()\n");
+  } else {
+      LOG_W(RRC, "[Zengwen][DPCM] *BUG* part 2 does not verify in rrc_eNB_decode_ccch()\n");
+      rval = -1
+  }
+
+  pbc_free(da);
+  pbc_free(db);
+  pbc_free(dc);
+  pbc_free(dcu);
+
+  element_clear(exbcu);
+  element_clear(tmp1);
+  element_clear(tmp2);
+  element_clear(right);
+  element_clear(left);
+  element_clear(A);
+  element_clear(B);
+  element_clear(C);
+  element_clear(cu);
+}
 
 //-----------------------------------------------------------------------------
 static void
@@ -3723,6 +3798,7 @@ rrc_eNB_process_RRCConnectionReconfigurationComplete(
   }
 }
 
+// Zengwen: work on this function
 //-----------------------------------------------------------------------------
 void
 rrc_eNB_generate_RRCConnectionSetup(
@@ -3743,6 +3819,8 @@ rrc_eNB_generate_RRCConnectionSetup(
     T_INT(ctxt_pP->subframe), T_INT(ctxt_pP->rnti));
 
   SRB_configList = &ue_context_pP->ue_context.SRB_configList;
+
+  // Zengwen: do_RRCConnectionSetup() will return the payload size
   eNB_rrc_inst[ctxt_pP->module_id].carrier[CC_id].Srb0.Tx_buffer.payload_size =
     do_RRCConnectionSetup(ctxt_pP,
                           ue_context_pP,
@@ -4031,6 +4109,9 @@ rrc_eNB_decode_ccch(
   struct rrc_eNB_ue_context_s*                  ue_context_p = NULL;
   uint64_t                                      random_value = 0;
   int                                           stmsi_received = 0;
+#if defined(DPCM)
+  DPCMStates_t*   dpcmStates = NULL;
+#endif
 
   T(T_ENB_RRC_UL_CCCH_DATA_IN, T_INT(ctxt_pP->module_id), T_INT(ctxt_pP->frame),
     T_INT(ctxt_pP->subframe), T_INT(ctxt_pP->rnti));
@@ -4183,7 +4264,17 @@ rrc_eNB_decode_ccch(
           ue_context_p->ue_context.rnti,
           dec_rval.consumed);
       } else {
+
+        // Zengwen: UE not in the context, register a context for UE
         rrcConnectionRequest = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.rrcConnectionRequest_r8;
+#if defined(DPCM)
+        // Zengwen: if using DPCM, get the DPCM states from UL_CCCH message
+        dpcmStates = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.criticalExtensionsFuture.dpcmStates;
+        LOG_W(RRC, "[Zengwen][DPCM] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch()\n");
+        // LOG_W(RRC, "[Zengwen][DPCM] dpcmId = %d\n" % dpcmStates->dpcmId);
+        // LOG_W(RRC, "[Zengwen][DPCM] dpcmSecurityContext->timestamp = %s\n" % dpcmStates->dpcmSecurityContext->timestamp);
+#endif
+
         {
           if (InitialUE_Identity_PR_randomValue == rrcConnectionRequest->ue_Identity.present) {
             AssertFatal(rrcConnectionRequest->ue_Identity.choice.randomValue.size == 5,
@@ -4331,7 +4422,18 @@ rrc_eNB_decode_ccch(
              &DCCH_LCHAN_DESC,
              LCHAN_DESC_SIZE);
       
+      LOG_W(RRC, "[Zengwen][DPCM] (original) Entering rrc_eNB_generate_RRCConnectionSetup() in rrc_eNB_decode_ccch()\n");
+
+#if defined(DPCM)
+      // Zengwen: add security key verification before entering the rrc_eNB_generate_RRCConnectionSetup()
+      if (verify_dpcm_states(dpcmStates) == 0) {
+        rrc_eNB_generate_RRCConnectionSetup(ctxt_pP, ue_context_p, CC_id);
+      } else {
+        rrc_eNB_generate_RRCConnectionReject(ctxt_pP, ue_context_p, CC_id);
+      }
+#else
       rrc_eNB_generate_RRCConnectionSetup(ctxt_pP, ue_context_p, CC_id);
+#endif
       LOG_I(RRC, PROTOCOL_RRC_CTXT_UE_FMT"CALLING RLC CONFIG SRB1 (rbid %d)\n",
             PROTOCOL_RRC_CTXT_UE_ARGS(ctxt_pP),
             Idx);
@@ -5015,6 +5117,8 @@ rrc_enb_task(
              RRC_MAC_CCCH_DATA_IND(msg_p).sdu,
              RRC_MAC_CCCH_DATA_IND(msg_p).sdu_size);
       srb_info_p->Rx_buffer.payload_size = RRC_MAC_CCCH_DATA_IND(msg_p).sdu_size;
+
+      // Zengwen: here, the rrc_eNB_decode_ccch() is called
       rrc_eNB_decode_ccch(&ctxt, srb_info_p, CC_id);
       break;
 
