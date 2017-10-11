@@ -39,7 +39,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 
 
 #include "assertions.h"
@@ -128,7 +128,7 @@ extern void pdcp_config_set_security(
 void rrc_ue_process_securityModeCommand( const protocol_ctxt_t* const ctxt_pP, SecurityModeCommand_t* const securityModeCommand, const uint8_t eNB_index );
 
 // Zengwen: define time logging function
-long dpcm_log_timestamp();
+long dpcm_log_timestamp(void);
 struct rrc_eNB_ue_context_s*   const ue_context_pP_dpcm_cache;
 
 static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index );
