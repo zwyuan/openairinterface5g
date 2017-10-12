@@ -7,7 +7,7 @@ LDLIBS := -lgmp -lm -lpbc
 CFLAGS := $(optflags) $(warnflags)
 
 target:
-	gcc -o foo foo.c -I/usr/local/include/pbc $(CFLAGS) $(LDLIBS)
+	gcc -o iden iden.c -I/usr/local/include/pbc $(CFLAGS) $(LDLIBS)
 
 clean:
 	rm foo
