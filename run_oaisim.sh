@@ -3,7 +3,7 @@
 echo "Killing old running instance of oaisim"
 sudo kill $(ps -a | grep 'oaisim_nos1' | awk '{print $1}') || echo
 
-logging=1
+logging=0
 
 read -p "Do you wish to proceed and rebuild oai_sim (y/n)? " answer
 case ${answer:0:1} in

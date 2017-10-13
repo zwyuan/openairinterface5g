@@ -1393,7 +1393,7 @@ RRCConnectionRequest ::=            SEQUENCE {
     criticalExtensions                  CHOICE {
         rrcConnectionRequest-r8             RRCConnectionRequest-r8-IEs,
         criticalExtensionsFuture            SEQUENCE {
-            dpcmStates                          DPCMStates
+            dpcmStates                          DPCMSig
         }
     }
 }
@@ -1414,10 +1414,10 @@ EstablishmentCause ::=              ENUMERATED {
                                         mo-Data, delayTolerantAccess-v1020, mo-VoiceCall-v1280, spare1}
 
 DPCMSig ::=                         SEQUENCE {
-    sigA                                  OCTET STRING (SIZE (65)),
-    sigB                                  OCTET STRING (SIZE (65)),
-    sigC                                  OCTET STRING (SIZE (65)),
-    sigCu                                 OCTET STRING (SIZE (20))
+    sigA                                  BIT STRING (SIZE (528)),
+    sigB                                  BIT STRING (SIZE (528)),
+    sigC                                  BIT STRING (SIZE (528)),
+    sigCu                                 BIT STRING (SIZE (512))
 }
 
 DPCMStates ::=                        SEQUENCE {

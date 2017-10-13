@@ -130,6 +130,7 @@ void rrc_ue_process_securityModeCommand( const protocol_ctxt_t* const ctxt_pP, S
 // Zengwen: define time logging function
 long dpcm_log_timestamp(void);
 struct rrc_eNB_ue_context_s*   const ue_context_pP_dpcm_cache;
+struct rrc_UE_DPCM_sig_s*      rrc_UE_DPCM_sig;
 
 static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index );
 
@@ -384,7 +385,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
 
   //printf("Initializing pairing parameters...\n");
 
-  int rbits = 160;
+  int rbits = 512;
   int qbits = 512;
   pbc_param_t param;
 
@@ -467,15 +468,6 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
 
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][466] blind the signature in openair_rrc_ue_init(), rrc_UE.c\n");
 
-  //clear meta elements
-  element_clear(ax);
-  element_clear(a1cuxy);
-  element_clear(xy);
-  element_clear(cuxy);
-  element_clear(r);
-  element_clear(UE_a);
-  element_clear(UE_b);
-  element_clear(UE_c);
 
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][480] clear meta elements in openair_rrc_ue_init(), rrc_UE.c\n");
 
@@ -493,9 +485,14 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_to_bytes_compressed(c, UE_C);
   element_to_bytes(cU, UE_cU);
 
+
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][496][%ld ms] signature compress in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
 
-  printf("a=%lu \n",sizeof(a));
+  element_printf("Compressed sig A = \n");
+  for (int i = 0; i < n; i++) {
+    element_printf("%x", a[i]);
+  }
+  element_printf("\n");
 
 
   // if(verbose) element_printf("[DPCM][UE] sig component UE_A = %B\n", UE_A);
@@ -507,10 +504,22 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   // if(verbose) element_printf("[DPCM][UE] sig component c = %B\n", c);
   // if(verbose) element_printf("[DPCM][UE] sig component cU = %B\n", cU);
 
-  // Zengwen: TODO
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][506] TODO: put DPCM keys into protocol_ctxt_t ctxt_pP. in function openair_rrc_ue_init() \n");
+  rrc_UE_DPCM_sig->dpcmSigA = a;
+  rrc_UE_DPCM_sig->dpcmSigB = b;
+  rrc_UE_DPCM_sig->dpcmSigC = c;
+  rrc_UE_DPCM_sig->dpcmSigCu = cU;
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][506] Done putting DPCM keys into dpcmSig in openair_rrc_ue_init(), rrc_UE.c\n");
 
 
+  //clear meta elements
+  element_clear(ax);
+  element_clear(a1cuxy);
+  element_clear(xy);
+  element_clear(cuxy);
+  element_clear(r);
+  element_clear(UE_a);
+  element_clear(UE_b);
+  element_clear(UE_c);
   return 0;
 }
 
@@ -553,7 +562,7 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
         rv
 #if defined(DPCM)
         ,
-        ue_context_pP_dpcm_cache
+        rrc_UE_DPCM_sig
 #endif
         );
 

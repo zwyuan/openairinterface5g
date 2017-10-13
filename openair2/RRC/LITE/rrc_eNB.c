@@ -4111,7 +4111,8 @@ rrc_eNB_decode_ccch(
   uint64_t                                      random_value = 0;
   int                                           stmsi_received = 0;
 #if defined(DPCM)
-  DPCMStates_t*   dpcmStates = NULL;
+  // DPCMStates_t*   dpcmStates = NULL;
+  DPCMSig_t*   dpcmStates = NULL;
 #endif
 
   T(T_ENB_RRC_UL_CCCH_DATA_IN, T_INT(ctxt_pP->module_id), T_INT(ctxt_pP->frame),

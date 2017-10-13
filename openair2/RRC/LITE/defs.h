@@ -438,6 +438,16 @@ typedef struct rrc_eNB_ue_context_s {
   struct eNB_RRC_UE_s   ue_context;
 } rrc_eNB_ue_context_t;
 
+typedef struct rrc_UE_DPCM_sig_s {
+  unsigned char *                      dpcmSigA;
+  unsigned char *                      dpcmSigB;
+  unsigned char *                      dpcmSigC;
+  unsigned char *                      dpcmSigCu;
+  // BIT_STRING_t                            dpcmSigB;
+  // BIT_STRING_t                            dpcmSigC;
+  // BIT_STRING_t                            dpcmSigCu;
+} rrc_UE_DPCM_sig_t;
+
 typedef struct {
   uint8_t                           *SIB1;
   uint8_t                           sizeof_SIB1;

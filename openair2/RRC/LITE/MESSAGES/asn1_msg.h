@@ -115,7 +115,7 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
                                 uint8_t *rv
 #if defined(DPCM)
                                 ,
-                                rrc_eNB_ue_context_t*  const ue_context_pP_dpcm_cache
+                                rrc_UE_DPCM_sig_t*      rrc_UE_DPCM_sig
 #endif
                                 );
 
