@@ -378,9 +378,9 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
 #endif
 
 #if defined(DPCM)
-  LOG_W(RRC, "[Zengwen][DPCM] The DPCM var is defined and found in rrc_UE.c\n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][381] The DPCM var is defined in openair_rrc_ue_init(), rrc_UE.c\n");
 #endif
-  LOG_W(RRC, "[Zengwen][DPCM][%ld ms] INIT: DPCM security key context in function openair_rrc_ue_init() \n", dpcm_log_timestamp());
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][383][%ld ms] INIT: DPCM security key context in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
 
   //printf("Initializing pairing parameters...\n");
 
@@ -414,14 +414,14 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_pow_zn(Y, g, y);
 
   //printf("Generating keys.....\n");
-  LOG_W(RRC, "[Zengwen][DPCM][%ld ms] INIT: DPCM Generating keys... in function openair_rrc_ue_init() \n", dpcm_log_timestamp());
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][417][%ld ms] INIT: DPCM Generating keys... in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
 
 
   element_t UE_a, UE_b, UE_c, UE_cU, r, UE_A, UE_B, UE_C;
   element_t ax, a1cuxy;
   element_t xy, cuxy;
 
-  LOG_W(RRC, "[Zengwen][DPCM][424] variable def in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][424] variable def in openair_rrc_ue_init(), rrc_UE.c\n");
 
   element_init_G1(UE_a, pairing);
   element_init_G1(UE_b, pairing);
@@ -441,7 +441,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_init_Zr(UE_cU, pairing2);
 
 
-  LOG_W(RRC, "[Zengwen][DPCM][442] Initializing in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][442] Initializing in function openair_rrc_ue_init(), rrc_UE.c\n");
 
     //temporarily regard cu as a random number in Zr
   //instead of Cu = r^k&^ru
@@ -457,7 +457,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_mul(UE_c, ax, a1cuxy);
   if(verbose) element_printf("sig component UE_c = %B\n", UE_c);
 
-  LOG_W(RRC, "[Zengwen][DPCM][458] Initializing in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][458] Initializing in openair_rrc_ue_init(), rrc_UE.c\n");
 
   //blind the signature
   element_random(r);
@@ -465,8 +465,8 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_pow_zn(UE_B, UE_b, r);
   element_pow_zn(UE_C, UE_c, r);
 
-  LOG_W(RRC, "[Zengwen][DPCM][466] blind the signature in function openair_rrc_ue_init() \n");
-  
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][466] blind the signature in openair_rrc_ue_init(), rrc_UE.c\n");
+
   //clear meta elements
   element_clear(ax);
   element_clear(a1cuxy);
@@ -477,11 +477,13 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_clear(UE_b);
   element_clear(UE_c);
 
-  LOG_W(RRC, "[Zengwen][DPCM][480] clear meta elements in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][480] clear meta elements in openair_rrc_ue_init(), rrc_UE.c\n");
 
   //signature compress
   int n = pairing_length_in_bytes_compressed_G1(pairing);
   int m = pairing_length_in_bytes_Zr(pairing2);
+
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][486] two compressed sizes are n = %d, m = %d in openair_rrc_ue_init(), rrc_UE.c\n", n, m);
   a = pbc_malloc(n);
   b = pbc_malloc(n);
   c = pbc_malloc(n);
@@ -491,7 +493,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_to_bytes_compressed(c, UE_C);
   element_to_bytes(cU, UE_cU);
 
-  LOG_W(RRC, "[Zengwen][DPCM][%ld ms] signature compress in function openair_rrc_ue_init() \n", dpcm_log_timestamp());
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][496][%ld ms] signature compress in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
 
   printf("a=%lu \n",sizeof(a));
 
@@ -506,7 +508,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   // if(verbose) element_printf("[DPCM][UE] sig component cU = %B\n", cU);
 
   // Zengwen: TODO
-  LOG_W(RRC, "[Zengwen][DPCM][506] TODO: put DPCM keys into protocol_ctxt_t ctxt_pP. in function openair_rrc_ue_init() \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][506] TODO: put DPCM keys into protocol_ctxt_t ctxt_pP. in function openair_rrc_ue_init() \n");
 
 
   return 0;
@@ -527,7 +529,7 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
 
   uint8_t i=0,rv[6];
 
-  LOG_W(RRC, "[Zengwen][DPCM][497] inside RRC connection request \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][497] just entered rrc_ue_generate_RRCConnectionRequest(), rrc_UE.c\n");
 
   if(UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size ==0) {
 
@@ -637,7 +639,7 @@ static void rrc_ue_generate_RRCConnectionSetupComplete( const protocol_ctxt_t* c
 		buffer,
 		PDCP_TRANSMISSION_MODE_CONTROL);
 
-  LOG_W(RRC, "[Zengwen][DPCM][%ld ms] function rrc_ue_generate_RRCConnectionSetupComplete() \n", dpcm_log_timestamp());
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][642][%ld ms] End of function rrc_ue_generate_RRCConnectionSetupComplete(), rrc_UE.c\n", dpcm_log_timestamp());
 }
 
 //-----------------------------------------------------------------------------
@@ -3753,20 +3755,19 @@ static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_in
 			   );
 
   // Zengwen: debug RRC connection request
-  LOG_W(RRC, "[Zengwen][DPCM][%ld ms] About to enter RRC connection request \n", dpcm_log_timestamp());
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][3758][%ld ms] About to enter RRC connection request \n", dpcm_log_timestamp());
 
 	// After SI is received, prepare RRCConnectionRequest
 #if defined(Rel10) || defined(Rel14)
-  LOG_W(RRC, "[Zengwen][DPCM]][3750] \n");
 	if (UE_rrc_inst[ctxt_pP->module_id].MBMS_flag < 3) // see -Q option
 #endif
 #if !(defined(ENABLE_ITTI) && defined(ENABLE_USE_MME))
-    LOG_W(RRC, "[Zengwen][DPCM]][3754] \n");
+    LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][3765] will enter rrc_ue_generate_RRCConnectionRequest() in decode_SI(), rrc_UE.c\n");
 	  rrc_ue_generate_RRCConnectionRequest( ctxt_pP, eNB_index );
 	
 #endif
 	
-  LOG_W(RRC, "[Zengwen][DPCM]][3759] \n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][3770] in decode_SI(), rrc_UE.c\n");
 	if (UE_rrc_inst[ctxt_pP->module_id].Info[eNB_index].State == RRC_IDLE) {
 	  LOG_I( RRC, "[UE %d] Received SIB1/SIB2/SIB3 Switching to RRC_SI_RECEIVED\n", ctxt_pP->module_id );
 	  UE_rrc_inst[ctxt_pP->module_id].Info[eNB_index].State = RRC_SI_RECEIVED;
@@ -4613,9 +4614,9 @@ void *rrc_ue_task( void *args_p )
 
       if (rrc_get_state(ue_mod_id) == RRC_STATE_INACTIVE) {
         // have a look at MAC/main.c void dl_phy_sync_success(...)
-        LOG_W(RRC, "[Zengwen][DPCM][%ld ms][4606] RRC state == IDLE, call openair_rrc_ue_init() \n", dpcm_log_timestamp());
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][%ld ms][4606] RRC state == IDLE, will call openair_rrc_ue_init(), in rrc_ue_task(), rrc_UE.c\n", dpcm_log_timestamp());
         openair_rrc_ue_init(ue_mod_id,0);
-        LOG_W(RRC, "[Zengwen][DPCM][%ld ms][4608] Return from openair_rrc_ue_init() \n", dpcm_log_timestamp());
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][%ld ms][4608] Just return from openair_rrc_ue_init(), in rrc_ue_task(), rrc_UE.c\n", dpcm_log_timestamp());
       }
 
       /* Save cell selection criterion */

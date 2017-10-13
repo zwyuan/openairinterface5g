@@ -125,65 +125,66 @@ mui_t                               rrc_eNB_mui = 0;
 // Zengwen: verify DPCM security contexts
 int verify_dpcm_states(dpcmStates)
 {
-  rval = 0
-  element_t cu, A, B, C;
-  element_init_G1(A, pairing);
-  element_init_G1(B, pairing);
-  element_init_G1(C, pairing);
-  element_init_Zr(cu, pairing2);
+  int rval = 0;
+  // element_t cu, A, B, C;
+  // element_init_G1(A, pairing);
+  // element_init_G1(B, pairing);
+  // element_init_G1(C, pairing);
+  // element_init_Zr(cu, pairing2);
   
-  element_from_bytes_compressed(A, da);
-  element_from_bytes_compressed(B, db);
-  element_from_bytes_compressed(C, dc);
-  element_from_bytes(cu, dcu);
+  // element_from_bytes_compressed(A, da);
+  // element_from_bytes_compressed(B, db);
+  // element_from_bytes_compressed(C, dc);
+  // element_from_bytes(cu, dcu);
  
-  //verification I
-  element_t exbcu;
-  element_t tmp1, tmp2, right, left;
-  element_init_GT(exbcu, pairing);
-  element_init_GT(tmp1, pairing);
-  element_init_GT(tmp2, pairing);
-  element_init_GT(right, pairing);
-  element_init_GT(left, pairing);
+  // //verification I
+  // element_t exbcu;
+  // element_t tmp1, tmp2, right, left;
+  // element_init_GT(exbcu, pairing);
+  // element_init_GT(tmp1, pairing);
+  // element_init_GT(tmp2, pairing);
+  // element_init_GT(right, pairing);
+  // element_init_GT(left, pairing);
 
-  element_pairing(tmp1, X, A);
-  element_pairing(tmp2, X, B);
-  element_pow_zn(exbcu, tmp2, cu);
-  element_mul(left, tmp1, exbcu);
-  element_pairing(right, g, C);
+  // element_pairing(tmp1, X, A);
+  // element_pairing(tmp2, X, B);
+  // element_pow_zn(exbcu, tmp2, cu);
+  // element_mul(left, tmp1, exbcu);
+  // element_pairing(right, g, C);
 
-  if (!element_cmp(left, right)) {
-      LOG_W(RRC, "[Zengwen][DPCM] Part 1 verifies on the eNB side in rrc_eNB_decode_ccch()\n");
-  } else {
-      LOG_W(RRC, "[Zengwen][DPCM] *BUG* part 1 does not verify in rrc_eNB_decode_ccch()\n");
-      rval = -1
-  }
+  // if (!element_cmp(left, right)) {
+  //     LOG_W(RRC, "[Zengwen][DPCM] Part 1 verifies on the eNB side in rrc_eNB_decode_ccch()\n");
+  // } else {
+  //     LOG_W(RRC, "[Zengwen][DPCM] *BUG* part 1 does not verify in rrc_eNB_decode_ccch()\n");
+  //     rval = -1
+  // }
 
-  //verification II
-  element_pairing(left, A, Y);
-  element_pairing(right, g, B);
+  // //verification II
+  // element_pairing(left, A, Y);
+  // element_pairing(right, g, B);
 
-  if (!element_cmp(left, right)) {
-      LOG_W(RRC, "[Zengwen][DPCM] Part 2 verifies on the eNB side in rrc_eNB_decode_ccch()\n");
-  } else {
-      LOG_W(RRC, "[Zengwen][DPCM] *BUG* part 2 does not verify in rrc_eNB_decode_ccch()\n");
-      rval = -1
-  }
+  // if (!element_cmp(left, right)) {
+  //     LOG_W(RRC, "[Zengwen][DPCM] Part 2 verifies on the eNB side in rrc_eNB_decode_ccch()\n");
+  // } else {
+  //     LOG_W(RRC, "[Zengwen][DPCM] *BUG* part 2 does not verify in rrc_eNB_decode_ccch()\n");
+  //     rval = -1
+  // }
 
-  pbc_free(da);
-  pbc_free(db);
-  pbc_free(dc);
-  pbc_free(dcu);
+  // pbc_free(da);
+  // pbc_free(db);
+  // pbc_free(dc);
+  // pbc_free(dcu);
 
-  element_clear(exbcu);
-  element_clear(tmp1);
-  element_clear(tmp2);
-  element_clear(right);
-  element_clear(left);
-  element_clear(A);
-  element_clear(B);
-  element_clear(C);
-  element_clear(cu);
+  // element_clear(exbcu);
+  // element_clear(tmp1);
+  // element_clear(tmp2);
+  // element_clear(right);
+  // element_clear(left);
+  // element_clear(A);
+  // element_clear(B);
+  // element_clear(C);
+  // element_clear(cu);
+  return rval;
 }
 
 //-----------------------------------------------------------------------------
@@ -4270,7 +4271,7 @@ rrc_eNB_decode_ccch(
 #if defined(DPCM)
         // Zengwen: if using DPCM, get the DPCM states from UL_CCCH message
         dpcmStates = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.criticalExtensionsFuture.dpcmStates;
-        LOG_W(RRC, "[Zengwen][DPCM] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch()\n");
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4273] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n");
         // LOG_W(RRC, "[Zengwen][DPCM] dpcmId = %d\n" % dpcmStates->dpcmId);
         // LOG_W(RRC, "[Zengwen][DPCM] dpcmSecurityContext->timestamp = %s\n" % dpcmStates->dpcmSecurityContext->timestamp);
 #endif
@@ -4421,8 +4422,6 @@ rrc_eNB_decode_ccch(
       memcpy(&ue_context_p->ue_context.Srb2.Srb_info.Lchan_desc[1],
              &DCCH_LCHAN_DESC,
              LCHAN_DESC_SIZE);
-      
-      LOG_W(RRC, "[Zengwen][DPCM] (original) Entering rrc_eNB_generate_RRCConnectionSetup() in rrc_eNB_decode_ccch()\n");
 
 #if defined(DPCM)
       // Zengwen: add security key verification before entering the rrc_eNB_generate_RRCConnectionSetup()
