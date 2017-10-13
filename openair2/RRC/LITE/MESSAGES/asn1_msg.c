@@ -1163,6 +1163,7 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
                                 )
 {
 
+  LOG_W(RRC, "[Zengwen][DPCM][ASN1_MSG][1166] just got into do_RRCConnectionRequest(), asn1_msg.c\n");
   asn_enc_rval_t enc_rval;
   uint8_t buf[5],buf2=0;
   uint8_t ecause=0;
@@ -1211,29 +1212,50 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
   rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.spare.bits_unused = 7;
 
 #if defined(DPCM)
-  // Zengwen: if use DPCM, put the DPCM states in the rrc connection request message
-  LOG_W(RRC,"[Zengwen][DPCM] The DPCM var is defined and found in do_RRCConnectionRequest(), asn1_msg.c\n");
+  LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1215] Encoding DPCM states into ASN.1 RRC criticalExtensions in do_RRCConnectionRequest(), asn1_msg.c\n");
 
-#ifdef USER_MODE
-  LOG_W(RRC,"[Zengwen][UE] RRCConnectionRequest encoding DPCM states in the criticalExtensions in do_RRCConnectionRequest(), asn1_msg.c\n");
+  if (1) {
+    int len = sizeof(struct transport_layer_addr_s);
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1219] len = sizeof(struct transport_layer_addr_s) = %d\n", len);
+    uint8_t * sgw_addr = malloc(len);
+    // memcpy(sgw_addr, &ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.sgw_addr, len);
+
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.size = len;
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.bits_unused = 0;
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.buf = sgw_addr;
+
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1231] in do_RRCConnectionRequest(), asn1_msg.c\n");
+    for (int i = 0; i < len; i++) {
+      // LOG_W(RRC,"[Zengwen][DPCM][UE] assigning sgw_addr[%d] = %s\n", i, sgw_addr[i]);
+      rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.buf[i] = sgw_addr[i];
+    }
+
+    len = sizeof(struct e_rab_level_qos_parameter_s);
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1234] len = sizeof(struct e_rab_level_qos_parameter_s) = %d\n", len);
+    uint8_t * qos = malloc(len);
+    // memcpy(qos, &ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.qos, len);
+
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.size = len;
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.bits_unused = 0;
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.buf = CALLOC(1, len);
+    for (int i = 0; i < len; i++) {
+      // LOG_W(RRC,"[Zengwen][DPCM][UE] assigning qos[%d] = %s\n", i, qos[i]);
+      rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp.buf[i] = qos[i];
+    }
+
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmId = ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.gtp_teid;
+    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmId = 0;
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1248] in do_RRCConnectionRequest(), asn1_msg.c\n");
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.timestamp =  rv[0];
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.randomValue = rv[0];
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.certificate = rv[0];
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.privateKey = rv[0];
+  } else {
+    // do the signature verification part
+  }
 #endif
-  int len = sizeof(struct transport_layer_addr_s);
-  BIT_STRING_t * sgw_addr = malloc(len);
-  memcpy(sgw_addr, &ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.sgw_addr, len);
 
-  len = sizeof(struct e_rab_level_qos_parameter_s);
-  BIT_STRING_t * qos = malloc(len);
-  memcpy(qos, &ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.qos, len);
-
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmQos = *qos;
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmIp = *sgw_addr;
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmId = ue_context_pP_dpcm_cache->ue_context.e_rab[0].param.gtp_teid;
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.timestamp =  rv[0];
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.randomValue = rv[0];
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.certificate = rv[0];
-  rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.privateKey = rv[0];
-#endif
-
+  LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1258] Finished DPCM encoding in do_RRCConnectionRequest(), asn1_msg.c\n");
   enc_rval = uper_encode_to_buffer(&asn_DEF_UL_CCCH_Message,
                                    (void*)&ul_ccch_msg,
                                    buffer,
