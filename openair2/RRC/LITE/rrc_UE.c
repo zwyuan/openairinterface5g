@@ -129,8 +129,8 @@ void rrc_ue_process_securityModeCommand( const protocol_ctxt_t* const ctxt_pP, S
 
 // Zengwen: define time logging function
 long dpcm_log_timestamp(void);
+// Zengwen; TODO: add ue_context_pP cache in the attach procedures
 struct rrc_eNB_ue_context_s*   const ue_context_pP_dpcm_cache;
-struct rrc_UE_DPCM_sig_s*      rrc_UE_DPCM_sig;
 
 static int decode_SI( const protocol_ctxt_t* const ctxt_pP, const uint8_t eNB_index );
 
@@ -166,15 +166,15 @@ static void decode_MBSFNAreaConfiguration(module_id_t module_idP, uint8_t eNB_in
 #endif
 
 // Zengwen: variable declaration for PBC
-
 element_t g, X, Y, x, y;
 pairing_t pairing;
 pairing_t pairing2;
 
-// these are shared variables that should be put into the rrc connection request criticalextension field
-// and be verified later at the eNB side as the rrc connection request goes on.
-unsigned char *a, *b, *c, *cU;
+// Zengwen: DPCM signatures that will be put into the rrc connection request criticalextension field
+// and verified later at the eNB side.
+rrc_UE_DPCM_sig_t      rrc_UE_DPCM_sig;
 
+// logging knob
 int verbose = 1;
 
 /*------------------------------------------------------------------------------*/
@@ -384,9 +384,8 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][383][%ld ms] INIT: DPCM security key context in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
 
   //printf("Initializing pairing parameters...\n");
-
   int rbits = 512;
-  int qbits = 512;
+  int qbits = 160;
   pbc_param_t param;
 
   pbc_param_init_a_gen(param, rbits, qbits);
@@ -403,22 +402,22 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_init_Zr(x, pairing2);
   element_init_Zr(y, pairing2);
 
+  //system variable & public key generation
+  element_random(g);
   element_random(x);
   element_random(y);
 
-  printf("g=%lu X=%lu Y=%lu x=%lu y=%lu\n",sizeof(g),sizeof(X),sizeof(Y),sizeof(x),sizeof(y));
-
-  //system variable & public key generation
-  element_random(g);
-  if(verbose) element_printf("system parameter g = %B\n", g);
   element_pow_zn(X, g, x);
   element_pow_zn(Y, g, y);
+
+  // printf("g=%lu X=%lu Y=%lu x=%lu y=%lu\n",sizeof(g),sizeof(X),sizeof(Y),sizeof(x),sizeof(y));
+  if(verbose) element_printf("system parameter g = %B\n", g);
 
   //printf("Generating keys.....\n");
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][417][%ld ms] INIT: DPCM Generating keys... in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
 
-
-  element_t UE_a, UE_b, UE_c, UE_cU, r, UE_A, UE_B, UE_C;
+  element_t UE_a, UE_b, UE_c, UE_cU, UE_A, UE_B, UE_C, T_UE;
+  element_t tmp;
   element_t ax, a1cuxy;
   element_t xy, cuxy;
 
@@ -427,13 +426,16 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_init_G1(UE_a, pairing);
   element_init_G1(UE_b, pairing);
   element_init_G1(UE_c, pairing);
-  element_init_Zr(r, pairing);
+
   element_init_G1(UE_A, pairing);
   element_init_G1(UE_B, pairing);
   element_init_G1(UE_C, pairing);
 
   element_init_G1(ax, pairing);
   element_init_G1(a1cuxy, pairing);
+  element_init_G1(tmp, pairing); // or element_init_Zr?
+
+  element_init_Zr(T_UE, pairing);
 
   //temporarily regard p and q are independent
   //instead of p = 2q ＋ 1
@@ -441,85 +443,111 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_init_Zr(cuxy, pairing2);
   element_init_Zr(UE_cU, pairing2);
 
-
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][442] Initializing in function openair_rrc_ue_init(), rrc_UE.c\n");
 
-    //temporarily regard cu as a random number in Zr
-  //instead of Cu = r^k&^ru
+  element_random(UE_a); // choose random a
+  element_pow_zn(UE_b, UE_a, y); // b = a^y
+
+  //temporarily regard cu as a random number in Zr
+  //instead of Cu = gamma^ru
   element_random(UE_cU);
-  element_random(UE_a);
+  element_mul(xy, x, y); // xy = x * y
+  element_mul(cuxy, UE_cU, xy); // cuxy = cu * xy
+
+  if (0) {
+    element_add(tmp, x, cuxy); // tmp = x + cuxy
+    element_pow_zn(UE_c, UE_a, tmp); // c = a^(tmp) = a^(x+cuxy)
+  } else {
+    element_pow_zn(ax, UE_a, x); // ax = a^x
+    element_pow_zn(a1cuxy, UE_a, cuxy); // a1cuxy = a^cuxy
+    element_mul(UE_c, ax, a1cuxy); // c = ax * a1cuxy = a^x * a^cuxy = a^(x + cuxy)
+  }
+
   if(verbose) element_printf("sig component UE_a = %B\n", UE_a);
-  element_pow_zn(UE_b, UE_a, y);
   if(verbose) element_printf("sig component UE_b = %B\n", UE_b);
-  element_pow_zn(ax, UE_a, x);
-  element_mul(xy, x, y);
-  element_mul(cuxy, xy, UE_cU);
-  element_pow_zn(a1cuxy, UE_a, cuxy);
-  element_mul(UE_c, ax, a1cuxy);
   if(verbose) element_printf("sig component UE_c = %B\n", UE_c);
 
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][458] Initializing in openair_rrc_ue_init(), rrc_UE.c\n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][470] Initializing in openair_rrc_ue_init(), rrc_UE.c\n");
 
   //blind the signature
-  element_random(r);
-  element_pow_zn(UE_A, UE_a, r);
-  element_pow_zn(UE_B, UE_b, r);
-  element_pow_zn(UE_C, UE_c, r);
+  element_random(T_UE);
+  element_pow_zn(UE_A, UE_a, T_UE);
+  element_pow_zn(UE_B, UE_b, T_UE);
+  element_pow_zn(UE_C, UE_c, T_UE);
 
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][466] blind the signature in openair_rrc_ue_init(), rrc_UE.c\n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][478] blind the signature in openair_rrc_ue_init(), rrc_UE.c\n");
 
+  if(verbose) element_printf("Blineded sig component UE_A = %B\n", UE_A);
+  if(verbose) element_printf("Blineded sig component UE_B = %B\n", UE_B);
+  if(verbose) element_printf("Blineded sig component UE_C = %B\n", UE_C);
 
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][480] clear meta elements in openair_rrc_ue_init(), rrc_UE.c\n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][484] clear meta elements in openair_rrc_ue_init(), rrc_UE.c\n");
 
   //signature compress
-  int n = pairing_length_in_bytes_compressed_G1(pairing);
-  int m = pairing_length_in_bytes_Zr(pairing2);
+  // int n = pairing_length_in_bytes_compressed_G1(pairing);
+  // int m = pairing_length_in_bytes_Zr(pairing2);
+  // LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][486] two compressed sizes are n = %d, m = %d in openair_rrc_ue_init(), rrc_UE.c\n", n, m);
 
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][486] two compressed sizes are n = %d, m = %d in openair_rrc_ue_init(), rrc_UE.c\n", n, m);
-  a = pbc_malloc(n);
-  b = pbc_malloc(n);
-  c = pbc_malloc(n);
-  cU = pbc_malloc(m);
-  element_to_bytes_compressed(a, UE_A);
-  element_to_bytes_compressed(b, UE_B);
-  element_to_bytes_compressed(c, UE_C);
-  element_to_bytes(cU, UE_cU);
+  int n = element_length_in_bytes_compressed(UE_A);
+  int m = element_length_in_bytes(UE_cU);
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][493] element_length_in_bytes_compressed(UE_A) sizes are n = %d in openair_rrc_ue_init(), rrc_UE.c\n", n);
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][494] element_to_bytes(UE_cU) sizes are m = %d in openair_rrc_ue_init(), rrc_UE.c\n", m);
 
+  rrc_UE_DPCM_sig.sizeof_n = n;
+  rrc_UE_DPCM_sig.sizeof_m = m;
 
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][496][%ld ms] signature compress in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
+  rrc_UE_DPCM_sig.dpcmSigA = pbc_malloc(n);
+  rrc_UE_DPCM_sig.dpcmSigB = pbc_malloc(n);
+  rrc_UE_DPCM_sig.dpcmSigC = pbc_malloc(n);
+  element_to_bytes_compressed(rrc_UE_DPCM_sig.dpcmSigA, UE_A);
+  element_to_bytes_compressed(rrc_UE_DPCM_sig.dpcmSigB, UE_B);
+  element_to_bytes_compressed(rrc_UE_DPCM_sig.dpcmSigC, UE_C);
 
-  element_printf("Compressed sig A = \n");
-  for (int i = 0; i < n; i++) {
-    element_printf("%x", a[i]);
+  rrc_UE_DPCM_sig.dpcmSigCu = pbc_malloc(m);
+  element_to_bytes(rrc_UE_DPCM_sig.dpcmSigCu, UE_cU);
+
+  if (verbose) {
+    int i;
+    printf("bytes_compressed rrc_UE_DPCM_sig.dpcmSigA = ");
+    for (i = 0; i < n; i++) {
+      printf("%02X", rrc_UE_DPCM_sig.dpcmSigA[i]);
+    }
+    printf("\n");
+    printf("bytes_compressed rrc_UE_DPCM_sig.dpcmSigB = ");
+    for (i = 0; i < n; i++) {
+      printf("%02X", rrc_UE_DPCM_sig.dpcmSigB[i]);
+    }
+    printf("\n");
+    printf("bytes_compressed rrc_UE_DPCM_sig.dpcmSigC = ");
+    for (i = 0; i < n; i++) {
+      printf("%02X", rrc_UE_DPCM_sig.dpcmSigC[i]);
+    }
+    printf("\n");
+    printf("bytes rrc_UE_DPCM_sig.dpcmSigCu = ");
+    for (i = 0; i < m; i++) {
+      printf("%02X", rrc_UE_DPCM_sig.dpcmSigCu[i]);
+    }
+    printf("\n");
   }
-  element_printf("\n");
 
-
-  // if(verbose) element_printf("[DPCM][UE] sig component UE_A = %B\n", UE_A);
-  // if(verbose) element_printf("[DPCM][UE] sig component UE_B = %B\n", UE_B);
-  // if(verbose) element_printf("[DPCM][UE] sig component UE_C = %B\n", UE_C);
-  // if(verbose) element_printf("[DPCM][UE] sig component UE_cU = %B\n", UE_cU);
-  // if(verbose) element_printf("[DPCM][UE] sig component a = %B\n", a);
-  // if(verbose) element_printf("[DPCM][UE] sig component b = %B\n", b);
-  // if(verbose) element_printf("[DPCM][UE] sig component c = %B\n", c);
-  // if(verbose) element_printf("[DPCM][UE] sig component cU = %B\n", cU);
-
-  rrc_UE_DPCM_sig->dpcmSigA = a;
-  rrc_UE_DPCM_sig->dpcmSigB = b;
-  rrc_UE_DPCM_sig->dpcmSigC = c;
-  rrc_UE_DPCM_sig->dpcmSigCu = cU;
-  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][506] Done putting DPCM keys into dpcmSig in openair_rrc_ue_init(), rrc_UE.c\n");
-
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][533][%ld ms] signature compress in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][534] Done putting DPCM keys into dpcmSig in openair_rrc_ue_init(), rrc_UE.c\n");
 
   //clear meta elements
+  element_clear(UE_a);
+  element_clear(UE_b);
+  element_clear(UE_c);
+  element_clear(UE_cU);
+  element_clear(UE_A);
+  element_clear(UE_B);
+  element_clear(UE_C);
+  element_clear(T_UE);
+  element_clear(tmp);
   element_clear(ax);
   element_clear(a1cuxy);
   element_clear(xy);
   element_clear(cuxy);
-  element_clear(r);
-  element_clear(UE_a);
-  element_clear(UE_b);
-  element_clear(UE_c);
+
   return 0;
 }
 
@@ -562,7 +590,7 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
         rv
 #if defined(DPCM)
         ,
-        rrc_UE_DPCM_sig
+        &rrc_UE_DPCM_sig
 #endif
         );
 

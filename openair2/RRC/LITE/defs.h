@@ -438,11 +438,20 @@ typedef struct rrc_eNB_ue_context_s {
   struct eNB_RRC_UE_s   ue_context;
 } rrc_eNB_ue_context_t;
 
+
+#define SIG_G1_LENGTH_MAX 100
+#define SIG_Zr_LENGTH_MAX 100
 typedef struct rrc_UE_DPCM_sig_s {
-  unsigned char *                      dpcmSigA;
-  unsigned char *                      dpcmSigB;
-  unsigned char *                      dpcmSigC;
-  unsigned char *                      dpcmSigCu;
+  // char                      dpcmSigA[SIG_G1_LENGTH_MAX];
+  // char                      dpcmSigB[SIG_G1_LENGTH_MAX];
+  // char                      dpcmSigC[SIG_G1_LENGTH_MAX];
+  // char                      dpcmSigCu[SIG_Zr_LENGTH_MAX];
+  uint8_t *                      dpcmSigA;
+  uint8_t *                      dpcmSigB;
+  uint8_t *                      dpcmSigC;
+  uint8_t *                      dpcmSigCu;
+  uint8_t                           sizeof_n;
+  uint8_t                           sizeof_m;
   // BIT_STRING_t                            dpcmSigB;
   // BIT_STRING_t                            dpcmSigC;
   // BIT_STRING_t                            dpcmSigCu;

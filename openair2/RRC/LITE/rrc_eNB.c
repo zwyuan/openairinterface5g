@@ -121,9 +121,11 @@ extern uint16_t                     two_tier_hexagonal_cellIds[7];
 
 mui_t                               rrc_eNB_mui = 0;
 
+int verify_dpcm_states(rrc_UE_DPCM_sig_t* dpcmStates);
+
 
 // Zengwen: verify DPCM security contexts
-int verify_dpcm_states(dpcmStates)
+int verify_dpcm_states(rrc_UE_DPCM_sig_t* dpcmStates)
 {
   int rval = 0;
   // element_t cu, A, B, C;
@@ -4112,7 +4114,7 @@ rrc_eNB_decode_ccch(
   int                                           stmsi_received = 0;
 #if defined(DPCM)
   // DPCMStates_t*   dpcmStates = NULL;
-  DPCMSig_t*   dpcmStates = NULL;
+  rrc_UE_DPCM_sig_t*   dpcmStates;
 #endif
 
   T(T_ENB_RRC_UL_CCCH_DATA_IN, T_INT(ctxt_pP->module_id), T_INT(ctxt_pP->frame),
