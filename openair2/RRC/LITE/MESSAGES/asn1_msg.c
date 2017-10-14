@@ -1252,23 +1252,53 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
     // // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.privateKey = rv[0];
   } else {
     // do the signature verification part
-    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1255] Trying to copy the signature in do_RRCConnectionRequest(), asn1_msg.c\n");
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1255] Trying to encode the signature in do_RRCConnectionRequest(), asn1_msg.c\n");
 
     // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA = rrc_UE_DPCM_sig->dpcmSigA;
-    int len = 66;
-    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1219] len = sizeof(struct transport_layer_addr_s) = %d\n", len);
+    int len = rrc_UE_DPCM_sig->sizeof_n;
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1219] rrc_UE_DPCM_sig->sizeof_n = %d\n", len);
     uint8_t * sig_a = malloc(len);
-    memcpy(sig_a, &rrc_UE_DPCM_sig->dpcmSigA, len);
+    memcpy(sig_a, rrc_UE_DPCM_sig->dpcmSigA, len);
+    printf("[DPCM] memcpy rrc_UE_DPCM_sig->dpcmSigA result is: ");
+    for (int i = 0; i < len; i++) {
+      printf("%02X", sig_a[i]);
+    }
+    printf("\n");
+
     rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.size = len;
     rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.bits_unused = 0;
     rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf = CALLOC(1, len);
+
+    memcpy(rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf, rrc_UE_DPCM_sig->dpcmSigA, len);
+    printf("[DPCM] The encoded rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA is: ");
     for (int i = 0; i < len; i++) {
-      rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf[i] = sig_a[i];
+      printf("%02X", rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf[i]);
     }
+    printf("\n");
+
+    // printf("[DPCM] The encoded rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA is: ");
+    // for (int i = 0; i < len; i++) {
+    //   rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf[i] = sig_a[i];
+    //   printf("%02X", sig_a[i]);
+    // }
+    // printf("\n");
   }
 #endif
 
   LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1258] Finished DPCM encoding in do_RRCConnectionRequest(), asn1_msg.c\n");
+
+  /*
+  A variant of uper_encode() which encodes data into the existing buffer
+  WARNING: This function returns the number of encoded bits in the .encoded
+  field of the return value.
+
+  asn_enc_rval_t uper_encode_to_buffer(
+    struct asn_TYPE_descriptor_s *type_descriptor,
+    void *struct_ptr, //Structure to be encoded 
+    void *buffer,   // Pre-allocated buffer 
+    size_t buffer_size  // Initial buffer size (max) 
+  );
+  */
   enc_rval = uper_encode_to_buffer(&asn_DEF_UL_CCCH_Message,
                                    (void*)&ul_ccch_msg,
                                    buffer,
@@ -1462,6 +1492,7 @@ do_RRCConnectionSetup(
   struct PhysicalConfigDedicated  **physicalConfigDedicated)
 {
 
+  LOG_W(RRC, "[Zengwen][DPCM][ASN1_MSG][1454] just got into do_RRCConnectionSetup(), asn1_msg.c\n");
   asn_enc_rval_t enc_rval;
   uint8_t ecause=0;
 

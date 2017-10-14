@@ -121,11 +121,11 @@ extern uint16_t                     two_tier_hexagonal_cellIds[7];
 
 mui_t                               rrc_eNB_mui = 0;
 
-int verify_dpcm_states(rrc_UE_DPCM_sig_t* dpcmStates);
+int verify_dpcm_states(DPCMSig_t* dpcmSig);
 
 
 // Zengwen: verify DPCM security contexts
-int verify_dpcm_states(rrc_UE_DPCM_sig_t* dpcmStates)
+int verify_dpcm_states(DPCMSig_t* dpcmSig)
 {
   int rval = 0;
   // element_t cu, A, B, C;
@@ -3824,6 +3824,8 @@ rrc_eNB_generate_RRCConnectionSetup(
   SRB_configList = &ue_context_pP->ue_context.SRB_configList;
 
   // Zengwen: do_RRCConnectionSetup() will return the payload size
+
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][3828] about to enter do_RRCConnectionSetup() in rrc_eNB_generate_RRCConnectionSetup(), rrc_eNB.c\n");
   eNB_rrc_inst[ctxt_pP->module_id].carrier[CC_id].Srb0.Tx_buffer.payload_size =
     do_RRCConnectionSetup(ctxt_pP,
                           ue_context_pP,
@@ -4115,6 +4117,7 @@ rrc_eNB_decode_ccch(
 #if defined(DPCM)
   // DPCMStates_t*   dpcmStates = NULL;
   rrc_UE_DPCM_sig_t*   dpcmStates;
+  DPCMSig_t* dpcmSig = NULL;
 #endif
 
   T(T_ENB_RRC_UL_CCCH_DATA_IN, T_INT(ctxt_pP->module_id), T_INT(ctxt_pP->frame),
@@ -4273,9 +4276,16 @@ rrc_eNB_decode_ccch(
         rrcConnectionRequest = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.rrcConnectionRequest_r8;
 #if defined(DPCM)
         // Zengwen: if using DPCM, get the DPCM states from UL_CCCH message
-        dpcmStates = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.criticalExtensionsFuture.dpcmStates;
+        dpcmSig = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.criticalExtensionsFuture.dpcmStates;
         LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4273] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n");
-        // LOG_W(RRC, "[Zengwen][DPCM] dpcmId = %d\n" % dpcmStates->dpcmId);
+        // LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4280] dpcmSigA = %d\n" % dpcmSig->sigA);
+        printf("[DPCM][RRC_ENB][4273] dpcmSigA = ");
+        for (int i = 0; i < 66; i++) {
+          // dpcmSig.sigA.buf[i] = sig_a[i];
+          printf("%02X", dpcmSig->sigA.buf[i]);
+        }
+        printf("\n");
+
         // LOG_W(RRC, "[Zengwen][DPCM] dpcmSecurityContext->timestamp = %s\n" % dpcmStates->dpcmSecurityContext->timestamp);
 #endif
 
@@ -4428,9 +4438,11 @@ rrc_eNB_decode_ccch(
 
 #if defined(DPCM)
       // Zengwen: add security key verification before entering the rrc_eNB_generate_RRCConnectionSetup()
-      if (verify_dpcm_states(dpcmStates) == 0) {
+      if (verify_dpcm_states(dpcmSig) == 0) {
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4434] The DPCM states are verified, entering rrc_eNB_generate_RRCConnectionSetup() in rrc_eNB_decode_dcch(), rrc_eNB.c\n");
         rrc_eNB_generate_RRCConnectionSetup(ctxt_pP, ue_context_p, CC_id);
       } else {
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4434] The DPCM states are NOT verified, reject RRC connection setup in rrc_eNB_decode_dcch(), rrc_eNB.c\n");
         rrc_eNB_generate_RRCConnectionReject(ctxt_pP, ue_context_p, CC_id);
       }
 #else

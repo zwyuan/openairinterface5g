@@ -411,7 +411,7 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
   element_pow_zn(Y, g, y);
 
   // printf("g=%lu X=%lu Y=%lu x=%lu y=%lu\n",sizeof(g),sizeof(X),sizeof(Y),sizeof(x),sizeof(y));
-  if(verbose) element_printf("system parameter g = %B\n", g);
+  if(verbose) element_printf("[DPCM] system parameter g = %B\n", g);
 
   //printf("Generating keys.....\n");
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][417][%ld ms] INIT: DPCM Generating keys... in openair_rrc_ue_init(), rrc_UE.c\n", dpcm_log_timestamp());
@@ -463,9 +463,9 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
     element_mul(UE_c, ax, a1cuxy); // c = ax * a1cuxy = a^x * a^cuxy = a^(x + cuxy)
   }
 
-  if(verbose) element_printf("sig component UE_a = %B\n", UE_a);
-  if(verbose) element_printf("sig component UE_b = %B\n", UE_b);
-  if(verbose) element_printf("sig component UE_c = %B\n", UE_c);
+  if(verbose) element_printf("[DPCM] sig component UE_a = %B\n", UE_a);
+  if(verbose) element_printf("[DPCM] sig component UE_b = %B\n", UE_b);
+  if(verbose) element_printf("[DPCM] sig component UE_c = %B\n", UE_c);
 
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][470] Initializing in openair_rrc_ue_init(), rrc_UE.c\n");
 
@@ -477,9 +477,9 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
 
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][478] blind the signature in openair_rrc_ue_init(), rrc_UE.c\n");
 
-  if(verbose) element_printf("Blineded sig component UE_A = %B\n", UE_A);
-  if(verbose) element_printf("Blineded sig component UE_B = %B\n", UE_B);
-  if(verbose) element_printf("Blineded sig component UE_C = %B\n", UE_C);
+  if(verbose) element_printf("[DPCM] Blineded sig component UE_A = %B\n", UE_A);
+  if(verbose) element_printf("[DPCM] Blineded sig component UE_B = %B\n", UE_B);
+  if(verbose) element_printf("[DPCM] Blineded sig component UE_C = %B\n", UE_C);
 
   LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][484] clear meta elements in openair_rrc_ue_init(), rrc_UE.c\n");
 
@@ -508,22 +508,22 @@ char openair_rrc_ue_init( const module_id_t ue_mod_idP, const unsigned char eNB_
 
   if (verbose) {
     int i;
-    printf("bytes_compressed rrc_UE_DPCM_sig.dpcmSigA = ");
+    printf("[DPCM] bytes_compressed rrc_UE_DPCM_sig.dpcmSigA = ");
     for (i = 0; i < n; i++) {
       printf("%02X", rrc_UE_DPCM_sig.dpcmSigA[i]);
     }
     printf("\n");
-    printf("bytes_compressed rrc_UE_DPCM_sig.dpcmSigB = ");
+    printf("[DPCM] bytes_compressed rrc_UE_DPCM_sig.dpcmSigB = ");
     for (i = 0; i < n; i++) {
       printf("%02X", rrc_UE_DPCM_sig.dpcmSigB[i]);
     }
     printf("\n");
-    printf("bytes_compressed rrc_UE_DPCM_sig.dpcmSigC = ");
+    printf("[DPCM] bytes_compressed rrc_UE_DPCM_sig.dpcmSigC = ");
     for (i = 0; i < n; i++) {
       printf("%02X", rrc_UE_DPCM_sig.dpcmSigC[i]);
     }
     printf("\n");
-    printf("bytes rrc_UE_DPCM_sig.dpcmSigCu = ");
+    printf("[DPCM] bytes encoded rrc_UE_DPCM_sig.dpcmSigCu = ");
     for (i = 0; i < m; i++) {
       printf("%02X", rrc_UE_DPCM_sig.dpcmSigCu[i]);
     }
