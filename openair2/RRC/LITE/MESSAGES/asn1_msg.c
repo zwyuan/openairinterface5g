@@ -1257,31 +1257,31 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
     // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA = rrc_UE_DPCM_sig->dpcmSigA;
     int len = rrc_UE_DPCM_sig->sizeof_n;
     LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1219] rrc_UE_DPCM_sig->sizeof_n = %d\n", len);
-    uint8_t * sig_a = malloc(len);
-    memcpy(sig_a, rrc_UE_DPCM_sig->dpcmSigA, len);
-    printf("[DPCM] memcpy rrc_UE_DPCM_sig->dpcmSigA result is: ");
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.size = len;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.bits_unused = 0;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.buf = rrc_UE_DPCM_sig->dpcmSigA;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigB.size = len;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigB.bits_unused = 0;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigB.buf = rrc_UE_DPCM_sig->dpcmSigB;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigC.size = len;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigC.bits_unused = 0;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigC.buf = rrc_UE_DPCM_sig->dpcmSigC;
+
+    len = rrc_UE_DPCM_sig->sizeof_m;
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1300] rrc_UE_DPCM_sig->sizeof_m = %d\n", len);
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigCu.size = len;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigCu.bits_unused = 0;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigCu.buf = rrc_UE_DPCM_sig->dpcmSigCu;
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.size = len;
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.bits_unused = 0;
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf = CALLOC(1, len);
+    // memcpy(rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf, rrc_UE_DPCM_sig->dpcmSigA, len);
+    printf("[DPCM] The encoded rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA is: ");
     for (int i = 0; i < len; i++) {
-      printf("%02X", sig_a[i]);
+      rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.buf[i] = rrc_UE_DPCM_sig->dpcmSigA[i];
+      printf("%02X", rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.buf[i]);
     }
     printf("\n");
-
-    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.size = len;
-    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.bits_unused = 0;
-    rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf = CALLOC(1, len);
-
-    memcpy(rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf, rrc_UE_DPCM_sig->dpcmSigA, len);
-    printf("[DPCM] The encoded rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA is: ");
-    for (int i = 0; i < len; i++) {
-      printf("%02X", rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf[i]);
-    }
-    printf("\n");
-
-    // printf("[DPCM] The encoded rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA is: ");
-    // for (int i = 0; i < len; i++) {
-    //   rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf[i] = sig_a[i];
-    //   printf("%02X", sig_a[i]);
-    // }
-    // printf("\n");
   }
 #endif
 
@@ -1294,15 +1294,16 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
 
   asn_enc_rval_t uper_encode_to_buffer(
     struct asn_TYPE_descriptor_s *type_descriptor,
-    void *struct_ptr, //Structure to be encoded 
-    void *buffer,   // Pre-allocated buffer 
-    size_t buffer_size  // Initial buffer size (max) 
+    void *struct_ptr, //Structure to be encoded
+    void *buffer,   // Pre-allocated buffer
+    size_t buffer_size  // Initial buffer size (max)
   );
   */
+  xer_fprint(stdout, &asn_DEF_UL_CCCH_Message, (void*)&ul_ccch_msg);
   enc_rval = uper_encode_to_buffer(&asn_DEF_UL_CCCH_Message,
                                    (void*)&ul_ccch_msg,
                                    buffer,
-                                   100);
+                                   500); // Zengwen: DPCM increase 100 to 500, just in case
   AssertFatal (enc_rval.encoded > 0, "ASN1 message encoding failed (%s, %lu)!\n",
                enc_rval.failed_type->name, enc_rval.encoded);
 

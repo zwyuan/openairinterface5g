@@ -1393,7 +1393,6 @@ RRCConnectionRequest ::=            SEQUENCE {
     criticalExtensions                  CHOICE {
         rrcConnectionRequest-r8             RRCConnectionRequest-r8-IEs,
         criticalExtensionsFuture            SEQUENCE {
-            dpcmStates                          DPCMSig
         }
     }
 }
@@ -1401,7 +1400,8 @@ RRCConnectionRequest ::=            SEQUENCE {
 RRCConnectionRequest-r8-IEs ::=     SEQUENCE {
     ue-Identity                         InitialUE-Identity,
     establishmentCause                  EstablishmentCause,
-    spare                               BIT STRING (SIZE (1))
+    spare                               BIT STRING (SIZE (1)),
+    dpcmStates                          DPCMSig
 }
 
 InitialUE-Identity ::=              CHOICE {

@@ -4276,7 +4276,8 @@ rrc_eNB_decode_ccch(
         rrcConnectionRequest = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.rrcConnectionRequest_r8;
 #if defined(DPCM)
         // Zengwen: if using DPCM, get the DPCM states from UL_CCCH message
-        dpcmSig = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.criticalExtensionsFuture.dpcmStates;
+        dpcmSig = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates;
+        // dpcmSig = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.dpcmStates;
         LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4273] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n");
         // LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4280] dpcmSigA = %d\n" % dpcmSig->sigA);
         printf("[DPCM][RRC_ENB][4273] dpcmSigA = ");
