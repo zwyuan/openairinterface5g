@@ -1174,6 +1174,12 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
 
   memset((void *)&ul_ccch_msg,0,sizeof(UL_CCCH_Message_t));
 
+#if defined(DPCM)
+  LOG_W(RRC, "[Zengwen][DPCM][ASN1_MSG][1174] In DPCM mode, sizeof(UL_CCCH_Message_t) = %d, do_RRCConnectionRequest(), asn1_msg.c\n", sizeof(UL_CCCH_Message_t));
+#else
+  LOG_W(RRC, "[Zengwen][DPCM][ASN1_MSG][1174] In original 4G LTE mode, sizeof(UL_CCCH_Message_t) = %d, do_RRCConnectionRequest(), asn1_msg.c\n", sizeof(UL_CCCH_Message_t));
+#endif
+
   ul_ccch_msg.message.present           = UL_CCCH_MessageType_PR_c1;
   ul_ccch_msg.message.choice.c1.present = UL_CCCH_MessageType__c1_PR_rrcConnectionRequest;
   rrcConnectionRequest          = &ul_ccch_msg.message.choice.c1.choice.rrcConnectionRequest;
@@ -1250,6 +1256,37 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
     // // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.randomValue = rv[0];
     // // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.certificate = rv[0];
     // // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.dpcmSecurityContext.privateKey = rv[0];
+        // do the signature verification part
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1255] ALT Trying to encode the signature in do_RRCConnectionRequest(), asn1_msg.c\n");
+
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA = rrc_UE_DPCM_sig->dpcmSigA;
+    int len = rrc_UE_DPCM_sig->sizeof_n;
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1219] rrc_UE_DPCM_sig->sizeof_n = %d\n", len);
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.size = 1;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.bits_unused = 520;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.buf = rrc_UE_DPCM_sig->dpcmSigA[0];
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigB.size = 1;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigB.bits_unused = 520;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigB.buf = rrc_UE_DPCM_sig->dpcmSigB[0];
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigC.size = 1;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigC.bits_unused = 520;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigC.buf = rrc_UE_DPCM_sig->dpcmSigC[0];
+
+    len = rrc_UE_DPCM_sig->sizeof_m;
+    LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1300] rrc_UE_DPCM_sig->sizeof_m = %d\n", len);
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigCu.size = 1;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigCu.bits_unused = 504;
+    rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigCu.buf = rrc_UE_DPCM_sig->dpcmSigCu[0];
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.size = len;
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.bits_unused = 0;
+    // rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf = CALLOC(1, len);
+    // memcpy(rrcConnectionRequest->criticalExtensions.choice.criticalExtensionsFuture.dpcmStates.sigA.buf, rrc_UE_DPCM_sig->dpcmSigA, len);
+    printf("[DPCM] The encoded rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA is: ");
+    for (int i = 0; i < 1; i++) {
+      rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.buf[i] = rrc_UE_DPCM_sig->dpcmSigA[i];
+      printf("%02X", rrcConnectionRequest->criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates.sigA.buf[i]);
+    }
+    printf("\n");
   } else {
     // do the signature verification part
     LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1255] Trying to encode the signature in do_RRCConnectionRequest(), asn1_msg.c\n");
@@ -1299,13 +1336,23 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
     size_t buffer_size  // Initial buffer size (max)
   );
   */
+
   xer_fprint(stdout, &asn_DEF_UL_CCCH_Message, (void*)&ul_ccch_msg);
   enc_rval = uper_encode_to_buffer(&asn_DEF_UL_CCCH_Message,
                                    (void*)&ul_ccch_msg,
                                    buffer,
-                                   500); // Zengwen: DPCM increase 100 to 500, just in case
+                                   400); // Zengwen: increase buffer size from 100 to 400 to contain DPCM states
   AssertFatal (enc_rval.encoded > 0, "ASN1 message encoding failed (%s, %lu)!\n",
                enc_rval.failed_type->name, enc_rval.encoded);
+
+
+  // Zengwen: somehow the encoded length is only 12 bytes.
+  LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1340] in UE side do_RRCConnectionRequest(), enc_rval.encoded = %d, asn1_msg.c:\n", enc_rval.encoded);
+  LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1340] ul_ccch_msg in binary is in do_RRCConnectionRequest(), asn1_msg.c:\n");
+  for (int i = 0; i < 400; i++) {
+    printf("%02X.", buffer[i]);
+  }
+  LOG_W(RRC,"\n");
 
 #if defined(ENABLE_ITTI)
 # if !defined(DISABLE_XER_SPRINT)
@@ -1330,7 +1377,12 @@ uint8_t do_RRCConnectionRequest(uint8_t Mod_id,
   LOG_D(RRC,"[UE] RRCConnectionRequest Encoded %d bits (%d bytes), ecause %d\n",enc_rval.encoded,(enc_rval.encoded+7)/8,ecause);
 #endif
 
-  return((enc_rval.encoded+7)/8);
+
+  LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1340] About to return, in UE side do_RRCConnectionRequest(), enc_rval.encoded = %d, asn1_msg.c:\n", enc_rval.encoded);
+  int rrval = (enc_rval.encoded+7)/8;
+  LOG_W(RRC,"[Zengwen][DPCM][ASN1_MSG][1340] About to return, in UE side do_RRCConnectionRequest(), rval = %d, asn1_msg.c:\n", rrval);
+  // return((enc_rval.encoded+7)/8);
+  return rrval;
 
 }
 

@@ -4120,12 +4120,19 @@ rrc_eNB_decode_ccch(
   DPCMSig_t* dpcmSig = NULL;
 #endif
 
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4123] Just entered rrc_eNB_decode_ccch(), rrc_eNB.c\n");
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4123] sizeof(Srb_info->Rx_buffer.Payload) = %lu, rrc_eNB.c\n", sizeof(Srb_info->Rx_buffer.Payload));
+
+  for (i=0; i<Srb_info->Rx_buffer.payload_size; i++) {
+    LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4127] Received Rx_buffer.Payload[i] = %x.\n", Srb_info->Rx_buffer.Payload[i]);
+  }
+
   T(T_ENB_RRC_UL_CCCH_DATA_IN, T_INT(ctxt_pP->module_id), T_INT(ctxt_pP->frame),
     T_INT(ctxt_pP->subframe), T_INT(ctxt_pP->rnti));
 
   //memset(ul_ccch_msg,0,sizeof(UL_CCCH_Message_t));
 
-  LOG_D(RRC, PROTOCOL_RRC_CTXT_UE_FMT" Decoding UL CCCH %x.%x.%x.%x.%x.%x (%p)\n",
+  LOG_W(RRC, PROTOCOL_RRC_CTXT_UE_FMT" Decoding UL CCCH %x.%x.%x.%x.%x.%x (%p)\n",
         PROTOCOL_RRC_CTXT_UE_ARGS(ctxt_pP),
         ((uint8_t*) Srb_info->Rx_buffer.Payload)[0],
         ((uint8_t *) Srb_info->Rx_buffer.Payload)[1],
@@ -4133,14 +4140,39 @@ rrc_eNB_decode_ccch(
         ((uint8_t *) Srb_info->Rx_buffer.Payload)[3],
         ((uint8_t *) Srb_info->Rx_buffer.Payload)[4],
         ((uint8_t *) Srb_info->Rx_buffer.Payload)[5], (uint8_t *) Srb_info->Rx_buffer.Payload);
+
+  // Zengwen [DPCM] print out UL_CCCH_MSG
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4145] xer_fprint (void*)&ul_ccch_msg, rrc_eNB.c\n");
+  xer_fprint(stdout, &asn_DEF_UL_CCCH_Message, (void*)&ul_ccch_msg);
+  LOG_W(RRC, "\n");
+
+  //asn_dec_rval_t uper_decode(const asn_codec_ctx_t *opt_codec_ctx,
+  //                           asn_TYPE_descriptor_t *td,
+  //                           void **sptr,
+  //                           const void *buffer,
+  //                           size_t size,
+  //                           int skip_bits,
+  //                           int unused_bits)
   dec_rval = uper_decode(
                NULL,
                &asn_DEF_UL_CCCH_Message,
                (void**)&ul_ccch_msg,
                (uint8_t*) Srb_info->Rx_buffer.Payload,
-               100,
+               400, // Zengwen: increase from 100 to 400 to match UL-CCCH change for DPCM
                0,
                0);
+
+  // typedef struct asn_dec_rval_s {
+  //   enum asn_dec_rval_code_e code;  /* Result code */
+  //   size_t consumed;    /* Number of bytes consumed */
+  // } asn_dec_rval_t;
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4147] dec_rval.consumed = %d in rrc_eNB_decode_ccch(), rrc_eNB.c\n", (int) dec_rval.consumed);
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4147] dec_rval.code = %d in rrc_eNB_decode_ccch(), rrc_eNB.c\n", dec_rval.code);
+
+  // Zengwen [DPCM] print out UL_CCCH_MSG
+  LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4145] xer_fprint (void*)&ul_ccch_msg, rrc_eNB.c\n");
+  xer_fprint(stdout, &asn_DEF_UL_CCCH_Message, (void*)&ul_ccch_msg);
+  LOG_W(RRC, "\n");
 
 #if defined(ENABLE_ITTI)
 #   if defined(DISABLE_ITTI_XER_PRINT)
@@ -4161,6 +4193,7 @@ rrc_eNB_decode_ccch(
            xer_sprint(message_string, sizeof(message_string), &asn_DEF_UL_CCCH_Message, (void *)ul_ccch_msg)) > 0) {
       MessageDef                         *msg_p;
 
+      LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4179] message_string_size = %d in rrc_eNB_decode_ccch(), rrc_eNB.c\n", (int) message_string_size);
       msg_p = itti_alloc_new_message_sized(TASK_RRC_ENB, RRC_UL_CCCH, message_string_size + sizeof(IttiMsgText));
       msg_p->ittiMsg.rrc_ul_ccch.size = message_string_size;
       memcpy(&msg_p->ittiMsg.rrc_ul_ccch.text, message_string, message_string_size);
@@ -4173,6 +4206,7 @@ rrc_eNB_decode_ccch(
 
   for (i = 0; i < 8; i++) {
     LOG_T(RRC, "%x.", ((uint8_t *) & ul_ccch_msg)[i]);
+    LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4183] %x.\n", ((uint8_t *) & ul_ccch_msg)[i]);
   }
 
   if (dec_rval.consumed == 0) {
@@ -4241,14 +4275,19 @@ rrc_eNB_decode_ccch(
       T(T_ENB_RRC_CONNECTION_REQUEST, T_INT(ctxt_pP->module_id), T_INT(ctxt_pP->frame),
         T_INT(ctxt_pP->subframe), T_INT(ctxt_pP->rnti));
 
-#ifdef RRC_MSG_PRINT
+// #ifdef RRC_MSG_PRINT
+#ifdef DPCM
       LOG_F(RRC,"[MSG] RRC Connection Request\n");
+      LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][MSG] RRC Connection Request, Srb_info->Rx_buffer.payload_size = %d\n", Srb_info->Rx_buffer.payload_size);
+      LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][MSG] RRC Connection Request, Srb_info->Rx_buffer.Payload = \n");
 
       for (i = 0; i < Srb_info->Rx_buffer.payload_size; i++) {
         LOG_F(RRC,"%02x ", ((uint8_t*)Srb_info->Rx_buffer.Payload)[i]);
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB]%02x.\n", ((uint8_t*)Srb_info->Rx_buffer.Payload)[i]);
       }
 
       LOG_F(RRC,"\n");
+      LOG_W(RRC,"\n");
 #endif
       LOG_D(RRC,
             PROTOCOL_RRC_CTXT_UE_FMT"MAC_eNB --- MAC_DATA_IND  (rrcConnectionRequest on SRB0) --> RRC_eNB\n",
@@ -4278,12 +4317,13 @@ rrc_eNB_decode_ccch(
         // Zengwen: if using DPCM, get the DPCM states from UL_CCCH message
         dpcmSig = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.rrcConnectionRequest_r8.dpcmStates;
         // dpcmSig = &ul_ccch_msg->message.choice.c1.choice.rrcConnectionRequest.criticalExtensions.choice.dpcmStates;
-        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4273] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n");
-        // LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4280] dpcmSigA = %d\n" % dpcmSig->sigA);
-        printf("[DPCM][RRC_ENB][4273] dpcmSigA = ");
-        for (int i = 0; i < 66; i++) {
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4319] Received DPCM states on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n");
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4320] Received DPCM SigA.size = %d on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n", dpcmSig->sigA.size);
+        LOG_W(RRC, "[Zengwen][DPCM][RRC_ENB][4321] Received DPCM SigCu.size = %d on UL-CCCH-Message in rrc_eNB_decode_ccch(), rrc_eNB.c\n", dpcmSig->sigCu.size);
+        printf("[DPCM][RRC_ENB][4322] dpcmSigA = ");
+        for (int i = 0; i < dpcmSig->sigA.size; i++) {
           // dpcmSig.sigA.buf[i] = sig_a[i];
-          printf("%02X", dpcmSig->sigA.buf[i]);
+          printf("%x", dpcmSig->sigA.buf[i]);
         }
         printf("\n");
 

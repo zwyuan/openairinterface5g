@@ -579,10 +579,25 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
 #else
       rv[i]=taus()&0xff;
 #endif
+
+      // // Zengwen: fix rv[6] for debugging
+      // rv[0] = 'a';
+      // rv[1] = 'b';
+      // rv[2] = 'c';
+      // rv[3] = 'd';
+      // rv[4] = 'e';
+      // rv[5] = 'f';
+      // rv[6] = 'g';
+      // LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][497] rv[i] = %x.\n",rv[i]);
       LOG_T(RRC,"%x.",rv[i]);
+
     }
 
     LOG_T(RRC,"\n");
+
+    // the ASN1_msg.c will encode what ever UL_CCCH message into some bytes
+    // then put the bytes into the buffer, which is (uint8_t*)UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.Payload
+    // then return the buffer size.
     UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size =
       do_RRCConnectionRequest(
         ctxt_pP->module_id,
@@ -594,11 +609,14 @@ void rrc_ue_generate_RRCConnectionRequest( const protocol_ctxt_t* const ctxt_pP,
 #endif
         );
 
+    LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][612] encoded Tx_buffer.payload_size = %d from do_RRCConnectionRequest(), rrc_eNB.c\n", UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size);
+
     LOG_I(RRC,"[UE %d] : Frame %d, Logical Channel UL-CCCH (SRB0), Generating RRCConnectionRequest (bytes %d, eNB %d)\n",
           ctxt_pP->module_id, ctxt_pP->frame, UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size, eNB_index);
 
     for (i=0; i<UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.payload_size; i++) {
       LOG_T(RRC,"%x.",UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.Payload[i]);
+      LOG_W(RRC, "[Zengwen][DPCM][RRC_UE][619] encoded Tx_buffer.Payload[i] = %x.\n",UE_rrc_inst[ctxt_pP->module_id].Srb0[eNB_index].Tx_buffer.Payload[i]);
     }
 
     LOG_T(RRC,"\n");

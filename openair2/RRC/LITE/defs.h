@@ -604,6 +604,10 @@ typedef struct UE_RRC_INST_s {
   uint8_t kenb[32];
 #endif
 
+// #if defined(DPCM)
+//   rrc_UE_DPCM_sig_t              *rrc_UE_DPCM_sig;
+// #endif
+
   /* Used integrity/ciphering algorithms */
   CipheringAlgorithm_r12_t                          ciphering_algorithm;
   e_SecurityAlgorithmConfig__integrityProtAlgorithm integrity_algorithm;
