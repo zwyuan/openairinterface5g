@@ -253,7 +253,7 @@ function main()
     echo "200 lte " >> /etc/iproute2/rt_tables
   fi
 
-  exe_arguments="$exe_arguments -s15 -AAWGN -y1 -b1 -u1 -Q0"
+  exe_arguments="$exe_arguments -s15 -AAWGN -y1 -b1 -u1 -Q0 -n1000"
     
   cd  $OPENAIR_DIR/targets/bin
    

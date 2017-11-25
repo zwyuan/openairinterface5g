@@ -575,6 +575,7 @@ void rlc_data_ind     (
 #endif
 
 
+  LOG_W(RLC, "Call pdcp_data_ind from rlc_data_ind\n");
   pdcp_data_ind (
     ctxt_pP,
     srb_flagP,

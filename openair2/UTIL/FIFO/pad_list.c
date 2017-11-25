@@ -165,6 +165,8 @@ Event_elt_t * event_list_remove_head (Event_List_t * listP)
 Packet_otg_elt_t * pkt_list_remove_head (Packet_OTG_List_t * listP)
 {
 
+  printf("pkt_list_remove_head called\n");
+
   // access optimisation
   Packet_otg_elt_t *head;
   head = listP->head;
@@ -280,6 +282,7 @@ Event_elt_t * event_list_remove_element (Event_elt_t * elementP, Event_List_t * 
 Packet_otg_elt_t * pkt_list_remove_element (Packet_otg_elt_t * elementP, Packet_OTG_List_t * listP)
 {
 
+  printf("pkt_list_remove_element called\n");
   // access optimisation;
   Packet_otg_elt_t *head;
 
@@ -468,6 +471,7 @@ void event_list_add_tail_eurecom (Event_elt_t * elementP, Event_List_t * listP)
 
 void pkt_list_add_tail_eurecom (Packet_otg_elt_t * elementP, Packet_OTG_List_t * listP)
 {
+  printf("pkt_list_add_tail_eurecom called\n");
   Packet_otg_elt_t *tail;
 
   if (elementP != NULL) {

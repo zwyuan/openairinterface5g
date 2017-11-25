@@ -342,8 +342,8 @@ int usim_api_authenticate(usim_data_t *usim_data, const OctetString* rand_pP, co
   int rc;
   int i;
 
-  LOG_TRACE(DEBUG, "USIM-API  - rand :%s",dump_octet_string(rand_pP));
-  LOG_TRACE(DEBUG, "USIM-API  - autn :%s",dump_octet_string(autn_pP));
+  LOG_TRACE(INFO, "USIM-API  - rand :%s",dump_octet_string(rand_pP));
+  LOG_TRACE(INFO, "USIM-API  - autn :%s",dump_octet_string(autn_pP));
 
   /* Compute the authentication response RES = f2K (RAND) */
   /* Compute the cipher key CK = f3K (RAND) */

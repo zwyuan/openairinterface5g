@@ -394,10 +394,11 @@ void rx_sdu(const module_id_t enb_mod_idP,
 	else
 	  UE_list->UE_template[CC_idP][UE_id].ul_buffer_info[UE_list->UE_template[CC_idP][UE_id].lcgidmap[rx_lcids[i]]] = 0;
 
-          LOG_D(MAC,"[eNB %d] CC_id %d Frame %d : ULSCH -> UL-DCCH, received %d bytes form UE %d on LCID %d \n",
+          LOG_D(MAC,"[eNB %d] CC_id %d Frame %d : ULSCH -> UL-DCCH, received %d bytes from UE %d on LCID %d \n",
                 enb_mod_idP,CC_idP,frameP, rx_lengths[i], UE_id, rx_lcids[i]);
 
-          mac_rlc_data_ind(
+        LOG_W(MAC, "call mac_rlc_data_ind from rx_sdu 1\n");
+        mac_rlc_data_ind(
 			   enb_mod_idP,
 			   rntiP,
 			   enb_mod_idP,
@@ -443,6 +444,7 @@ void rx_sdu(const module_id_t enb_mod_idP,
 	  else
 	    UE_list->UE_template[CC_idP][UE_id].ul_buffer_info[UE_list->UE_template[CC_idP][UE_id].lcgidmap[rx_lcids[i]]] = 0;
 	  if ((rx_lengths[i] <SCH_PAYLOAD_SIZE_MAX) &&  (rx_lengths[i] > 0) ) {   // MAX SIZE OF transport block
+      LOG_W(MAC, "call mac_rlc_data_ind from rx_sdu 2\n");
 	    mac_rlc_data_ind(
 			     enb_mod_idP,
 			     rntiP,

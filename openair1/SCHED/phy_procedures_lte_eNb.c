@@ -2866,6 +2866,8 @@ void phy_procedures_eNB_common_RX(PHY_VARS_eNB *eNB,eNB_rxtx_proc_t *proc){
 
 void phy_procedures_eNB_uespec_RX(PHY_VARS_eNB *eNB,eNB_rxtx_proc_t *proc,const relaying_type_t r_type)
 {
+
+  LOG_W(PHY, "phy_procedures_eNB_uespec_RX\n");
   //RX processing for ue-specific resources (i
   UNUSED(r_type);
   uint32_t ret=0,i,j,k;

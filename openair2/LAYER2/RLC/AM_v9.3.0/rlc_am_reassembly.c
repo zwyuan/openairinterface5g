@@ -182,6 +182,7 @@ rlc_am_send_sdu (
         rlc_pP->output_sdu_size_to_write
       );
 
+      LOG_W(RLC, "Call rlc_data_ind from rlc_am_send_sdu\n");
       rlc_data_ind (ctxt_pP,
                     BOOL_NOT(rlc_pP->is_data_plane),
                     MBMS_FLAG_NO,

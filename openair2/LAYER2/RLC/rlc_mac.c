@@ -302,14 +302,17 @@ void mac_rlc_data_ind     (
     break;
 
   case RLC_MODE_AM:
+    LOG_W(RLC, "call rlc_am_mac_data_indication from mac_rlc_data_ind\n");
     rlc_am_mac_data_indication(&ctxt, &rlc_union_p->rlc.am, data_ind);
     break;
 
   case RLC_MODE_UM:
+    LOG_W(RLC, "call rlc_um_mac_data_indication from mac_rlc_data_ind\n");
     rlc_um_mac_data_indication(&ctxt, &rlc_union_p->rlc.um, data_ind);
     break;
 
   case RLC_MODE_TM:
+    LOG_W(RLC, "call rlc_tm_mac_data_indication from mac_rlc_data_ind\n");
     rlc_tm_mac_data_indication(&ctxt, &rlc_union_p->rlc.tm, data_ind);
     break;
   }

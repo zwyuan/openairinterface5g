@@ -68,6 +68,8 @@ rlc_tm_send_sdu (
 
     memcpy (&rlc_pP->output_sdu_in_construction->data[rlc_pP->output_sdu_size_to_write], srcP, length_in_bytes);
 
+
+    LOG_W(RLC, "Call rlc_data_ind from rlc_tm_send_sdu\n");
     rlc_data_ind (
       ctxt_pP,
       BOOL_NOT(rlc_pP->is_data_plane),
@@ -141,6 +143,7 @@ rlc_tm_rx (
 
     ((struct rlc_tm_rx_pdu_management *) (tb_p->data))->first_byte = first_byte_p;
 
+    LOG_W(RLC, "call rlc_tm_send_sdu from rlc_tm_rx\n");
     rlc_tm_send_sdu (ctxt_pP, rlc_p, (((struct mac_tb_ind *) (tb_p->data))->error_indication), first_byte_p, data_indP.tb_size);
     free_mem_block (tb_p, __func__);
   }
@@ -204,6 +207,7 @@ rlc_tm_mac_data_indication (
           data_indP.data.nb_elements);
   }
 
+  LOG_W(RLC, "call rlc_tm_rx from rlc_tm_mac_data_indication\n");
   rlc_tm_rx (ctxt_pP, rlc_pP, data_indP);
 }
 

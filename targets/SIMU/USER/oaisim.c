@@ -632,11 +632,13 @@ l2l1_task (void *args_p)
   
   start_meas (&oaisim_stats);
 
+  LOG_D(EMU, "***********************************Totoal frames %d\n", oai_emulation.info.n_frames);
   for (frame = 0;
        (l2l1_state != L2L1_TERMINATED) && 
 	 ((oai_emulation.info.n_frames_flag == 0) ||
 	  (frame < oai_emulation.info.n_frames));
        frame++) {
+  LOG_D(EMU, "***********************************Frame %d\n", frame);
 
 #if defined(ENABLE_ITTI)
 
@@ -794,7 +796,8 @@ l2l1_task (void *args_p)
             
 	    */
 #ifdef OPENAIR2
-	    //Application: traffic gen
+      //Application: traffic gen
+      // LOG_W(EMU, "UPDATE OTG ENB\n");
             update_otg_eNB (eNB_inst, oai_emulation.info.time_ms);
 
             //IP/OTG to PDCP and PDCP to IP operation

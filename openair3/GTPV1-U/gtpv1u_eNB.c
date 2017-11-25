@@ -1042,6 +1042,7 @@ void *gtpv1u_eNB_task(void *args)
 
     // DATA TO BE SENT TO UDP
     case GTPV1U_ENB_TUNNEL_DATA_REQ: {
+      LOG_W(GTPU, "Send via gtpv1u\n");
       gtpv1u_enb_tunnel_data_req_t *data_req_p           = NULL;
       NwGtpv1uUlpApiT               stack_req;
       NwGtpv1uRcT                   rc                   = NW_GTPV1U_FAILURE;

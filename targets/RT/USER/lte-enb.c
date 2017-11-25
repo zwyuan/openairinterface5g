@@ -583,7 +583,10 @@ static inline int rxtx(PHY_VARS_eNB *eNB,eNB_rxtx_proc_t *proc, char *thread_nam
   phy_procedures_eNB_common_RX(eNB,proc);
   
   // UE-specific RX processing for subframe n
-  if (eNB->proc_uespec_rx) eNB->proc_uespec_rx(eNB, proc, no_relay );
+  if (eNB->proc_uespec_rx) {
+    LOG_W(PHY, "call eNB->proc_uespec_rx from rxtx\n");
+    eNB->proc_uespec_rx(eNB, proc, no_relay );
+  }
   
   // *****************************************
   // TX processing for subframe n+4
@@ -636,8 +639,10 @@ static void* eNB_thread_rxtx( void* param ) {
   
     if (oai_exit) break;
 
-    if (eNB->CC_id==0)
+    if (eNB->CC_id==0) {
+      LOG_W(PHY, "call rxtx from eNB_thread_rxtx\n");
       if (rxtx(eNB,proc,thread_name) < 0) break;
+    }
 
   } // while !oai_exit
 
@@ -1684,6 +1689,7 @@ static void* eNB_thread_single( void* param ) {
     // If this proc is to provide synchronization, do so
     wakeup_slaves(proc);
 
+    LOG_W(PHY, "call rxtx from eNB_thread_single\n");
     if (rxtx(eNB,proc_rxtx,"eNB_thread_single") < 0) break;
   }
   

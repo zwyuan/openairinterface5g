@@ -183,7 +183,9 @@ nwGtpv1uGpduMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
     pMsg->npduNumFlag   = NW_FALSE;
     pMsg->npduNum       = 0x00;
     // Message Type: This field indicates the type of GTP-U message.
-    pMsg->msgType       = NW_GTP_GPDU;
+    //***** [SEAN]: Change the message type to special field.
+    // pMsg->msgType       = NW_GTP_GPDU;
+    pMsg->msgType       = 27; /* 27-30 is reserved. */
     // Length: This field indicates the length in octets of the payload, i.e. the rest of the packet following the
     // mandatory part of the GTP header (that is the first 8 octets).
     // The Sequence Number, the N-PDU Number or any Extension headers shall be considered to be part of the payload,
