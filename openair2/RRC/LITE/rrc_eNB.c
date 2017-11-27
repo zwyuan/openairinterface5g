@@ -187,6 +187,29 @@ int verify_dpcm_states(dpcmStates)
   return rval;
 }
 
+int P12_1_Forward(DPCMStates_t* states) {
+  const int GTPU_HEADER_OVERHEAD_MAX = 64;
+  char* hello = "hello yesyes";
+  size_t hello_length = strlen(hello) + 1;
+  void* gtpu_buffer_p = itti_malloc(TASK_RRC_ENB, TASK_GTPV1_U,
+    hello_length + GTPU_HEADER_OVERHEAD_MAX);
+  AssertFatal(gtpu_buffer_p != NULL, "OUT OF MEMORY");
+  memcpy(&gtpu_buffer_p[GTPU_HEADER_OVERHEAD_MAX], 
+    hello, hello_length);
+  MessageDef* message_p = itti_alloc_new_message(TASK_PDCP_ENB, GTPV1U_ENB_TUNNEL_DATA_REQ);
+  AssertFatal(message_p != NULL, "OUT OF MEMORY");
+  GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).buffer       = gtpu_buffer_p;
+  GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).length       = hello_length;
+  GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).offset       = GTPU_HEADER_OVERHEAD_MAX;
+  // GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).rnti         = ctxt_pP->rnti;
+  // GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).rab_id       = rb_id + 4;
+  // Tell GTPV1U we are DPCM states!
+  GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).is_dpcm_states = 1;
+  int ret = itti_send_msg_to_task(TASK_GTPV1_U, INSTANCE_DEFAULT, message_p);
+  LOG_W(RRC, "[P12-1-Forward] send to old gateway\n");
+  return ret;
+}
+
 //-----------------------------------------------------------------------------
 static void
 init_SI(
@@ -4426,6 +4449,8 @@ rrc_eNB_decode_ccch(
 #if defined(DPCM)
       // Zengwen: add security key verification before entering the rrc_eNB_generate_RRCConnectionSetup()
       if (verify_dpcm_states(dpcmStates) == 0) {
+        // Forward states to old gateway.
+        P12_1_Forward(dpcmStates);
         rrc_eNB_generate_RRCConnectionSetup(ctxt_pP, ue_context_p, CC_id);
       } else {
         rrc_eNB_generate_RRCConnectionReject(ctxt_pP, ue_context_p, CC_id);

@@ -116,6 +116,7 @@ nwGtpv1uMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
   return NW_GTPV1U_FAILURE;
 }
 
+// Seanzw: add parameter for message type.
 NwGtpv1uRcT
 nwGtpv1uGpduMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
                     NW_IN uint32_t    teid,
@@ -124,6 +125,7 @@ nwGtpv1uGpduMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
                     NW_IN uint8_t    *tpdu,
                     NW_IN uint16_t    tpduLength,
                     NW_IN uint32_t    tpduOffset,
+                    NW_IN uint8_t     msgType,
                     NW_OUT NwGtpv1uMsgHandleT *phMsg)
 {
   NwGtpv1uStackT *pStack = (NwGtpv1uStackT *) hGtpuStackHandle;
@@ -183,7 +185,8 @@ nwGtpv1uGpduMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
     pMsg->npduNumFlag   = NW_FALSE;
     pMsg->npduNum       = 0x00;
     // Message Type: This field indicates the type of GTP-U message.
-    pMsg->msgType       = NW_GTP_GPDU;
+    // pMsg->msgType       = NW_GTP_GPDU;
+    pMsg->msgType       = msgType;
     // Length: This field indicates the length in octets of the payload, i.e. the rest of the packet following the
     // mandatory part of the GTP header (that is the first 8 octets).
     // The Sequence Number, the N-PDU Number or any Extension headers shall be considered to be part of the payload,

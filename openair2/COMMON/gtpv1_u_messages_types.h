@@ -96,6 +96,7 @@ typedef struct gtpv1u_enb_tunnel_data_req_s {
   uint32_t               offset;               ///< start of message offset in buffer
   rnti_t                 rnti;
   rb_id_t                rab_id;
+  uint8_t                is_dpcm_states;
 } gtpv1u_enb_tunnel_data_req_t;
 
 #endif /* GTPV1_U_MESSAGES_TYPES_H_ */

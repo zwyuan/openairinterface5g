@@ -28,6 +28,7 @@
  */
 #include <stdio.h>
 #include <errno.h>
+#include <arpa/inet.h>
 
 #include "mme_config.h"
 
@@ -635,6 +636,7 @@ gtpv1u_new_data_req(
                           buffer_pP,
                           buf_lenP,
                           buf_offsetP,
+                          NW_GTP_GPDU,
                           &(stack_req.apiInfo.sendtoInfo.hMsg));
 
   if (rc != NW_GTPV1U_OK) {
@@ -1042,6 +1044,7 @@ void *gtpv1u_eNB_task(void *args)
 
     // DATA TO BE SENT TO UDP
     case GTPV1U_ENB_TUNNEL_DATA_REQ: {
+      LOG_W(GTPU, "Send via eNB GTPV1U\n");
       gtpv1u_enb_tunnel_data_req_t *data_req_p           = NULL;
       NwGtpv1uUlpApiT               stack_req;
       NwGtpv1uRcT                   rc                   = NW_GTPV1U_FAILURE;
@@ -1059,17 +1062,39 @@ void *gtpv1u_eNB_task(void *args)
 #endif
       memset(&stack_req, 0, sizeof(NwGtpv1uUlpApiT));
 
-      hash_rc = hashtable_get(gtpv1u_data_g.ue_mapping, (uint64_t)data_req_p->rnti, (void**)&gtpv1u_ue_data_p);
+      // Hack if DPCM states.
+      if (data_req_p->is_dpcm_states) {
+        hash_rc = HASH_TABLE_KEY_ALREADY_EXISTS;
+      } else {
+        hash_rc = hashtable_get(gtpv1u_data_g.ue_mapping, (uint64_t)data_req_p->rnti, (void**)&gtpv1u_ue_data_p);
+      }
 
       if (hash_rc == HASH_TABLE_KEY_NOT_EXISTS) {
         LOG_E(GTPU, "nwGtpv1uProcessUlpReq failed: while getting ue rnti %x in hashtable ue_mapping\n", data_req_p->rnti);
       } else {
-        if ((data_req_p->rab_id >= GTPV1U_BEARER_OFFSET) && (data_req_p->rab_id <= max_val_DRB_Identity)) {
-          enb_s1u_teid                        = gtpv1u_ue_data_p->bearers[data_req_p->rab_id - GTPV1U_BEARER_OFFSET].teid_eNB;
-          sgw_s1u_teid                        = gtpv1u_ue_data_p->bearers[data_req_p->rab_id - GTPV1U_BEARER_OFFSET].teid_sgw;
+        /// Soooo many hack.
+        int rab_check = (data_req_p->rab_id >= GTPV1U_BEARER_OFFSET)
+          && (data_req_p->rab_id <= max_val_DRB_Identity);
+        if (data_req_p->is_dpcm_states || rab_check) {
+
+          uint8_t GTPV1U_msg_type;
+
+          if (data_req_p->is_dpcm_states) {
+            LOG_W(GTPU, "Send DPCM states %s\n", data_req_p->buffer + data_req_q->offset);
+            enb_s1u_teid = 5;
+            sgw_s1u_teid = 6;
+            stack_req.apiInfo.sendtoInfo.ipAddr = 
+              inet_addr("127.0.0.30");
+            GTPV1U_msg_type = 27; /* 27 - 30 is reserved. */;
+          } else {
+            enb_s1u_teid                        = gtpv1u_ue_data_p->bearers[data_req_p->rab_id - GTPV1U_BEARER_OFFSET].teid_eNB;
+            sgw_s1u_teid                        = gtpv1u_ue_data_p->bearers[data_req_p->rab_id - GTPV1U_BEARER_OFFSET].teid_sgw;
+            stack_req.apiInfo.sendtoInfo.ipAddr = 
+              gtpv1u_ue_data_p->bearers[data_req_p->rab_id - GTPV1U_BEARER_OFFSET].sgw_ip_addr;
+            GTPV1U_msg_type = NW_GTP_GPDU;
+          }
           stack_req.apiType                   = NW_GTPV1U_ULP_API_SEND_TPDU;
           stack_req.apiInfo.sendtoInfo.teid   = sgw_s1u_teid;
-          stack_req.apiInfo.sendtoInfo.ipAddr = gtpv1u_ue_data_p->bearers[data_req_p->rab_id - GTPV1U_BEARER_OFFSET].sgw_ip_addr;
 
           rc = nwGtpv1uGpduMsgNew(
                  gtpv1u_data_g.gtpv1u_stack,
@@ -1079,6 +1104,7 @@ void *gtpv1u_eNB_task(void *args)
                  data_req_p->buffer,
                  data_req_p->length,
                  data_req_p->offset,
+                 GTPV1U_msg_type,
                  &(stack_req.apiInfo.sendtoInfo.hMsg));
 
           if (rc != NW_GTPV1U_OK) {

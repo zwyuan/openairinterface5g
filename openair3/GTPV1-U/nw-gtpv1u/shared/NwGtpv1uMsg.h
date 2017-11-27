@@ -107,6 +107,7 @@ nwGtpv1uMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
  * @param[in] seqNum : Sequence number for this message.
  * @param[in] pTpdu: T-PDU for this message.
  * @param[in] tpduLength: T-PDU length for this message.
+ * @param[in] msgType: Message Type.
  * @param[out] phMsg : Pointer to message handle.
  */
 
@@ -118,6 +119,7 @@ nwGtpv1uGpduMsgNew( NW_IN NwGtpv1uStackHandleT hGtpuStackHandle,
                     NW_IN uint8_t*    tpdu,
                     NW_IN uint16_t    tpduLength,
                     NW_IN uint32_t    tpduOffset,
+                    NW_IN uint8_t     msgType,
                     NW_OUT NwGtpv1uMsgHandleT *phMsg);
 
 /**

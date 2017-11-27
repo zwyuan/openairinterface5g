@@ -234,6 +234,7 @@ nwMiniUlpTpduSend(NwMiniUlpEntityT *thiz, uint8_t *tpduBuf, uint32_t tpduLen ,
                            thiz->seqNum++,
                            tpduBuf,
                            tpduLen,
+                           NW_GTP_GPDU,
                            &(ulpReq.apiInfo.sendtoInfo.hMsg));
 
   NW_ASSERT( rc == NW_GTPV1U_OK );
