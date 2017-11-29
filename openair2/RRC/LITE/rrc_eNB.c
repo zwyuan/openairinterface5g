@@ -35,6 +35,10 @@
  */
 #include "pbc.h"
 #include "pbc_test.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <linux/ip.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -187,26 +191,70 @@ int verify_dpcm_states(dpcmStates)
   return rval;
 }
 
-int P12_1_Forward(DPCMStates_t* states) {
+int P12_2_Forward(DPCMStates_t* states) {
+
+  LOG_W(RRC, "[P12-2-Forward] Enter\n");
   const int GTPU_HEADER_OVERHEAD_MAX = 64;
-  char* hello = "hello yesyes";
-  size_t hello_length = strlen(hello) + 1;
+
+  // Encode states.
+  const int ASN_BUFFER_SIZE = 4096;
+  char asn_buffer[ASN_BUFFER_SIZE];
+  // asn_enc_rval_t asn_rval = uper_encode_to_buffer(&asn_DEF_DPCMStates, 
+  //   states, asn_buffer, ASN_BUFFER_SIZE);
+  // if (asn_rval.encoded == -1) {
+  //   LOG_W(RRC, "[P12-2-Forward] Failed encoding DPCM states (%s, %jd)!\n",
+  //     asn_rval.failed_type->name, asn_rval.encoded);
+  //   return -1;
+  // }
+  // const size_t states_encoded_bytes = (asn_rval.encoded + 7) / 8;
+  // Pretend we have encoded.
+  const size_t states_encoded_bytes = 24;
+
+  // Create IP header.
   void* gtpu_buffer_p = itti_malloc(TASK_RRC_ENB, TASK_GTPV1_U,
-    hello_length + GTPU_HEADER_OVERHEAD_MAX);
-  AssertFatal(gtpu_buffer_p != NULL, "OUT OF MEMORY");
-  memcpy(&gtpu_buffer_p[GTPU_HEADER_OVERHEAD_MAX], 
-    hello, hello_length);
+     GTPU_HEADER_OVERHEAD_MAX + sizeof(struct iphdr) + states_encoded_bytes);
+  AssertFatal(gtpu_buffer_p != NULL, "OUT OF MEMORY");  
+
+  struct iphdr* ip_header = (struct iphdr*)
+    (gtpu_buffer_p + GTPU_HEADER_OVERHEAD_MAX);
+  
+  const char* old_gateway_ip = "127.0.0.40";
+  ip_header->version = 4;
+  ip_header->tot_len = sizeof(struct iphdr) + states_encoded_bytes;
+  ip_header->protocol = IPPROTO_RAW;
+  // ip_header->saddr = inet_addr(UE_ip);
+  ip_header->daddr = inet_addr(old_gateway_ip);
+
+  // Copy the encoded DPCM states.
+  memcpy(gtpu_buffer_p + GTPU_HEADER_OVERHEAD_MAX + sizeof(struct iphdr),
+    asn_buffer, states_encoded_bytes);
+
+  // Print the payload in hex.
+  const size_t HEX_BUFFER_SIZE = 4096;
+  char hex_buffer[HEX_BUFFER_SIZE];
+  for (size_t i = 0, pos = 0; i < sizeof(struct iphdr) + states_encoded_bytes; ++i) {
+    if (pos >= HEX_BUFFER_SIZE) {
+      LOG_W(RRC, "[P12-2-Forward] Out of boundary! Boom! Not send to old gateway.\n");
+      return 1;
+    }
+    pos += 
+      sprintf(hex_buffer + pos, "%x ", 
+        ((char*)(gtpu_buffer_p))[GTPU_HEADER_OVERHEAD_MAX + i]);
+  }
+  LOG_W(RRC, "[P12-2-Forward] Payload: %s\n", hex_buffer);
+
   MessageDef* message_p = itti_alloc_new_message(TASK_PDCP_ENB, GTPV1U_ENB_TUNNEL_DATA_REQ);
   AssertFatal(message_p != NULL, "OUT OF MEMORY");
+
   GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).buffer       = gtpu_buffer_p;
-  GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).length       = hello_length;
+  GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).length       = sizeof(struct iphdr) + states_encoded_bytes;
   GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).offset       = GTPU_HEADER_OVERHEAD_MAX;
   // GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).rnti         = ctxt_pP->rnti;
   // GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).rab_id       = rb_id + 4;
   // Tell GTPV1U we are DPCM states!
   GTPV1U_ENB_TUNNEL_DATA_REQ(message_p).is_dpcm_states = 1;
   int ret = itti_send_msg_to_task(TASK_GTPV1_U, INSTANCE_DEFAULT, message_p);
-  LOG_W(RRC, "[P12-1-Forward] send to old gateway\n");
+  LOG_W(RRC, "[P12-2-Forward] send to old gateway\n");
   return ret;
 }
 
@@ -4450,7 +4498,7 @@ rrc_eNB_decode_ccch(
       // Zengwen: add security key verification before entering the rrc_eNB_generate_RRCConnectionSetup()
       if (verify_dpcm_states(dpcmStates) == 0) {
         // Forward states to old gateway.
-        P12_1_Forward(dpcmStates);
+        P12_2_Forward(dpcmStates);
         rrc_eNB_generate_RRCConnectionSetup(ctxt_pP, ue_context_p, CC_id);
       } else {
         rrc_eNB_generate_RRCConnectionReject(ctxt_pP, ue_context_p, CC_id);

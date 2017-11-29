@@ -1080,7 +1080,7 @@ void *gtpv1u_eNB_task(void *args)
           uint8_t GTPV1U_msg_type;
 
           if (data_req_p->is_dpcm_states) {
-            LOG_W(GTPU, "Send DPCM states %s\n", data_req_p->buffer + data_req_q->offset);
+            LOG_W(GTPU, "Send DPCM states %s\n", data_req_p->buffer + data_req_p->offset);
             enb_s1u_teid = 5;
             sgw_s1u_teid = 6;
             stack_req.apiInfo.sendtoInfo.ipAddr = 
