@@ -664,7 +664,7 @@ rrc_eNB_send_S1AP_NAS_FIRST_REQ(
     void* modify_nas_buf = NULL;
     modify_nas_buf = malloc(rrcConnectionSetupComplete->dedicatedInfoNAS.size + 4);
     memcpy(modify_nas_buf, rrcConnectionSetupComplete->dedicatedInfoNAS.buf, rrcConnectionSetupComplete->dedicatedInfoNAS.size);
-    meset(modify_nas_buf + rrcConnectionSetupComplete->dedicatedInfoNAS.size, '9', 4);
+    memset(modify_nas_buf + rrcConnectionSetupComplete->dedicatedInfoNAS.size, '9', 4);
     S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer = modify_nas_buf;
     S1AP_NAS_FIRST_REQ (message_p).nas_pdu.length = rrcConnectionSetupComplete->dedicatedInfoNAS.size + 4;
     LOG_I(S1AP, "Printing last four byte of nas payload.");
@@ -677,11 +677,12 @@ rrc_eNB_send_S1AP_NAS_FIRST_REQ(
     }
     
 
-    /*
-    /* Forward NAS message */S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer =
-    rrcConnectionSetupComplete->dedicatedInfoNAS.buf;
-    S1AP_NAS_FIRST_REQ (message_p).nas_pdu.length = rrcConnectionSetupComplete->dedicatedInfoNAS.size;
-    */
+    
+    /* Forward NAS message */
+    //S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer =
+   // rrcConnectionSetupComplete->dedicatedInfoNAS.buf;
+   // S1AP_NAS_FIRST_REQ (message_p).nas_pdu.length = rrcConnectionSetupComplete->dedicatedInfoNAS.size;
+  
 
     /* Fill UE identities with available information */
     {
