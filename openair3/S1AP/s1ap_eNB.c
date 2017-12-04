@@ -249,6 +249,7 @@ void s1ap_eNB_handle_sctp_association_resp(instance_t instance, sctp_new_associa
 
   DevAssert(sctp_new_association_resp != NULL);
 
+  LOG_I(RRC, "[eNB_Instance_inside_sctp_association_resp] %d\n", instance);
   instance_p = s1ap_eNB_get_instance(instance);
   DevAssert(instance_p != NULL);
 

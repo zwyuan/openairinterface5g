@@ -659,29 +659,11 @@ rrc_eNB_send_S1AP_NAS_FIRST_REQ(
     ue_context_pP->ue_context.establishment_cause, RRC_CAUSE_LAST, ctxt_pP->module_id);
 
     S1AP_NAS_FIRST_REQ (message_p).establishment_cause = ue_context_pP->ue_context.establishment_cause;
-
-    //zwu: modify nas message
-    void* modify_nas_buf = NULL;
-    modify_nas_buf = malloc(rrcConnectionSetupComplete->dedicatedInfoNAS.size + 4);
-    memcpy(modify_nas_buf, rrcConnectionSetupComplete->dedicatedInfoNAS.buf, rrcConnectionSetupComplete->dedicatedInfoNAS.size);
-    memset(modify_nas_buf + rrcConnectionSetupComplete->dedicatedInfoNAS.size, '9', 4);
-    S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer = modify_nas_buf;
-    S1AP_NAS_FIRST_REQ (message_p).nas_pdu.length = rrcConnectionSetupComplete->dedicatedInfoNAS.size + 4;
-    LOG_I(S1AP, "Printing last four byte of nas payload.");
-    for(int i=0;i<4;i++){
-      LOG_I(S1AP, "[eNB %d] last %d byte %02x\n",
-          ctxt_pP->module_id,
-          4-i, 
-          S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer[rrcConnectionSetupComplete->dedicatedInfoNAS.size + i]
-          );
-    }
-    
-
     
     /* Forward NAS message */
-    //S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer =
-   // rrcConnectionSetupComplete->dedicatedInfoNAS.buf;
-   // S1AP_NAS_FIRST_REQ (message_p).nas_pdu.length = rrcConnectionSetupComplete->dedicatedInfoNAS.size;
+    S1AP_NAS_FIRST_REQ (message_p).nas_pdu.buffer =
+   rrcConnectionSetupComplete->dedicatedInfoNAS.buf;
+   S1AP_NAS_FIRST_REQ (message_p).nas_pdu.length = rrcConnectionSetupComplete->dedicatedInfoNAS.size;
   
 
     /* Fill UE identities with available information */

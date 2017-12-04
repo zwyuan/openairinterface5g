@@ -71,6 +71,10 @@
 
 #include "T.h"
 
+#include "../../../openair3/S1AP/s1ap_eNB_itti_messaging.h"
+#include "../../../openair3/S1AP/s1ap_eNB_defs.h"
+#include "../../../openair3/S1AP/s1ap_eNB_management_procedures.h"
+
 //#if defined(Rel10) || defined(Rel14)
 #include "MeasResults.h"
 //#endif
@@ -256,6 +260,19 @@ int P12_2_Forward(DPCMStates_t* states) {
   int ret = itti_send_msg_to_task(TASK_GTPV1_U, INSTANCE_DEFAULT, message_p);
   LOG_W(RRC, "[P12-2-Forward] send to old gateway\n");
   return ret;
+}
+
+void P13_1_propose(DPCMStates_t* states, instance_t instance){
+  s1ap_eNB_instance_t* instance_p = s1ap_eNB_get_instance(instance);
+  s1ap_eNB_mme_data_t* mme_data = s1ap_eNB_get_MME_from_instance(instance_p);
+  
+  int32_t assoc_id = mme_data->assoc_id;
+  char* msg = "hahahahaha you are stupid";
+  uint32_t buffer_length = strlen(msg);
+  uint16_t stream = 0;
+
+  LOG_I(RRC, "[P13-1-PROPOSE] send message %s\n", msg);
+  s1ap_eNB_itti_send_sctp_data_req(instance, assoc_id, msg, buffer_length, stream);
 }
 
 //-----------------------------------------------------------------------------
@@ -4497,8 +4514,15 @@ rrc_eNB_decode_ccch(
 #if defined(DPCM)
       // Zengwen: add security key verification before entering the rrc_eNB_generate_RRCConnectionSetup()
       if (verify_dpcm_states(dpcmStates) == 0) {
+        // zwu:
+        LOG_I(RRC, "[eNB_Instance_inside_ccch] %d\n", ctxt_pP->instance);
+
         // Forward states to old gateway.
         P12_2_Forward(dpcmStates);
+
+        // Propose states to mme.
+        P13_1_propose(dpcmStates, ctxt_pP->instance);
+
         rrc_eNB_generate_RRCConnectionSetup(ctxt_pP, ue_context_p, CC_id);
       } else {
         rrc_eNB_generate_RRCConnectionReject(ctxt_pP, ue_context_p, CC_id);
