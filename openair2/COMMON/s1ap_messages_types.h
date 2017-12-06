@@ -537,4 +537,14 @@ typedef struct s1ap_ue_release_req_s {
   long          cause_value;
 } s1ap_ue_release_req_t, s1ap_ue_release_resp_t;
 
+//------------------------------------------------- DPCM messages -------------------------//
+typedef struct {
+  int dummy;
+} s1ap_dpcm_enb_propose_t;
+
+typedef struct {
+  int response;
+  int dummy;
+} s1ap_dpcm_enb_response_t;
+
 #endif /* S1AP_MESSAGES_TYPES_H_ */

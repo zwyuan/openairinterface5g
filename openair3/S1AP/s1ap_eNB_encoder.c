@@ -67,6 +67,11 @@ static inline int s1ap_eNB_encode_uplink_nas_transport(S1ap_UplinkNASTransportIE
     uint8_t **buffer,
     uint32_t *length);
 
+static inline int s1ap_eNB_encode_dpcm_enb_propose(S1ap_DPCMeNBProposeIEs_t
+    *ies,
+    uint8_t **buffer,
+    uint32_t *length);
+
 static inline int s1ap_eNB_encode_ue_capability_info_indication(
   S1ap_UECapabilityInfoIndicationIEs_t *ueCapabilityInfoIndicationIEs,
   uint8_t **buffer,
@@ -156,6 +161,13 @@ int s1ap_eNB_encode_initiating(s1ap_message *s1ap_message_p,
     message_id = S1AP_UPLINK_NAS_LOG;
     break;
 
+  case S1ap_ProcedureCode_id_DPCM_eNB_Propose:
+    ret = s1ap_eNB_encode_dpcm_enb_propose(
+            &s1ap_message_p->msg.s1ap_DPCMeNBProposeIEs, buffer, len);
+    s1ap_xer_print_s1ap_dpcmenbpropose(s1ap_xer__print2sp, message_string, s1ap_message_p);
+    message_id = -1; // No logging.
+    break;
+
   case S1ap_ProcedureCode_id_UECapabilityInfoIndication:
     ret = s1ap_eNB_encode_ue_capability_info_indication(
             &s1ap_message_p->msg.s1ap_UECapabilityInfoIndicationIEs, buffer, len);
@@ -194,15 +206,17 @@ int s1ap_eNB_encode_initiating(s1ap_message *s1ap_message_p,
     break;
   }
 
-  message_string_size = strlen(message_string);
+  if (message_id != -1) {
+    message_string_size = strlen(message_string);
 
-  message_p = itti_alloc_new_message_sized(TASK_S1AP, message_id, message_string_size + sizeof (IttiMsgText));
-  message_p->ittiMsg.s1ap_s1_setup_log.size = message_string_size;
-  memcpy(&message_p->ittiMsg.s1ap_s1_setup_log.text, message_string, message_string_size);
+    message_p = itti_alloc_new_message_sized(TASK_S1AP, message_id, message_string_size + sizeof (IttiMsgText));
+    message_p->ittiMsg.s1ap_s1_setup_log.size = message_string_size;
+    memcpy(&message_p->ittiMsg.s1ap_s1_setup_log.text, message_string, message_string_size);
 
-  itti_send_msg_to_task(TASK_UNKNOWN, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_UNKNOWN, INSTANCE_DEFAULT, message_p);
 
-  free(message_string);
+    free(message_string);
+  }
 
   return ret;
 }
@@ -366,6 +380,29 @@ int s1ap_eNB_encode_uplink_nas_transport(
                                           S1ap_Criticality_ignore,
                                           &asn_DEF_S1ap_UplinkNASTransport,
                                           uplinkNASTransport_p);
+}
+
+static inline
+int s1ap_eNB_encode_dpcm_enb_propose(
+  S1ap_DPCMeNBProposeIEs_t *ies,
+  uint8_t                     **buffer,
+  uint32_t                     *length)
+{
+  S1ap_DPCMeNBPropose_t  propose;
+  S1ap_DPCMeNBPropose_t *propose_p = &propose;
+
+  memset((void *)propose_p, 0, sizeof(propose));
+
+  if (s1ap_encode_s1ap_dpcmenbproposeies(propose_p, ies) < 0) {
+    return -1;
+  }
+
+  return s1ap_generate_initiating_message(buffer,
+                                          length,
+                                          S1ap_ProcedureCode_id_DPCM_eNB_Propose,
+                                          S1ap_Criticality_ignore,
+                                          &asn_DEF_S1ap_DPCMeNBPropose,
+                                          propose_p);
 }
 
 static inline

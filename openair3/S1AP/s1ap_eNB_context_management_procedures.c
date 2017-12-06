@@ -239,3 +239,49 @@ int s1ap_ue_context_release_req(instance_t instance,
   return 0;
 }
 
+
+int s1ap_dpcm_enb_propose(instance_t instance, s1ap_dpcm_enb_propose_t* propose_p) {
+  S1AP_INFO("Try sending dpcm_enb_propose\n");
+
+  s1ap_eNB_instance_t               *s1ap_eNB_instance_p           = NULL;
+  s1ap_message                       message;
+  uint8_t                           *buffer                        = NULL;
+  uint32_t                           length;
+
+  /* Retrieve the S1AP eNB instance associated with Mod_id */
+  s1ap_eNB_instance_p = s1ap_eNB_get_instance(instance);
+
+  DevAssert(s1ap_eNB_instance_p != NULL);
+
+  /* Prepare the S1AP message to encode */
+  memset(&message, 0, sizeof(s1ap_message));
+
+  // Set the procedure code.
+  message.direction     = S1AP_PDU_PR_initiatingMessage;
+  message.procedureCode = S1ap_ProcedureCode_id_DPCM_eNB_Propose;
+
+  S1ap_DPCMeNBProposeIEs_t* propose_ies_p = &message.msg.s1ap_DPCMeNBProposeIEs;
+
+  // Set a magic dummy number to 42.
+  propose_ies_p->dpcM_eNB_Propose_IE.dummy = propose_p->dummy;
+
+  if (s1ap_eNB_encode_pdu(&message, &buffer, &length) < 0) {
+    /* Encode procedure has failed... */
+    S1AP_ERROR("Failed to encode UE context release complete\n");
+    return -1;
+  }
+
+  S1AP_INFO("Encoded/Send DPCM_ENB_PROPOSE to SCTP task\n");
+
+  s1ap_eNB_mme_data_t* mme_data = s1ap_eNB_get_MME_from_instance(s1ap_eNB_instance_p);
+  
+  int32_t assoc_id = mme_data->assoc_id;
+  uint16_t stream = 0;
+
+  /* Use default stream 0. */
+  s1ap_eNB_itti_send_sctp_data_req(s1ap_eNB_instance_p->instance,
+                                   assoc_id, buffer,
+                                   length, stream);
+
+  return 0;
+}

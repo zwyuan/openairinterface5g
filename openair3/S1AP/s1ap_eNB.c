@@ -398,6 +398,11 @@ void *s1ap_eNB_task(void *arg)
     }
     break;
 
+    case S1AP_DPCM_ENB_PROPOSE: {
+      s1ap_dpcm_enb_propose(ITTI_MESSAGE_GET_INSTANCE(received_msg), &received_msg->ittiMsg.s1ap_dpcm_enb_propose);
+    }
+    break;
+
     default:
       S1AP_ERROR("Received unhandled message: %d:%s\n",
                  ITTI_MSG_ID(received_msg), ITTI_MSG_NAME(received_msg));

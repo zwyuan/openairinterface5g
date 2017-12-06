@@ -263,16 +263,25 @@ int P12_2_Forward(DPCMStates_t* states) {
 }
 
 void P13_1_propose(DPCMStates_t* states, instance_t instance){
-  s1ap_eNB_instance_t* instance_p = s1ap_eNB_get_instance(instance);
-  s1ap_eNB_mme_data_t* mme_data = s1ap_eNB_get_MME_from_instance(instance_p);
+  // s1ap_eNB_instance_t* instance_p = s1ap_eNB_get_instance(instance);
+  // s1ap_eNB_mme_data_t* mme_data = s1ap_eNB_get_MME_from_instance(instance_p);
   
-  int32_t assoc_id = mme_data->assoc_id;
-  char* msg = "hahahahaha you are stupid";
-  uint32_t buffer_length = strlen(msg);
-  uint16_t stream = 0;
+  // int32_t assoc_id = mme_data->assoc_id;
+  // char* msg = "hahahahaha you are stupid";
+  // uint32_t buffer_length = strlen(msg);
+  // uint16_t stream = 0;
 
-  LOG_I(RRC, "[P13-1-PROPOSE] send message %s\n", msg);
-  s1ap_eNB_itti_send_sctp_data_req(instance, assoc_id, msg, buffer_length, stream);
+  // LOG_I(RRC, "[P13-1-PROPOSE] send message %s\n", msg);
+  // s1ap_eNB_itti_send_sctp_data_req(instance, assoc_id, msg, buffer_length, stream);
+
+  MessageDef* message_p = itti_alloc_new_message(TASK_RRC_ENB, S1AP_DPCM_ENB_PROPOSE);
+  s1ap_dpcm_enb_propose_t* propose_p = &message_p->ittiMsg.s1ap_dpcm_enb_propose;
+
+  // For now just use 42.
+  propose_p->dummy = 42;
+
+  LOG_I(RRC, "[P13-1-PROPOSE] send message 42\n");
+  itti_send_msg_to_task(TASK_S1AP, instance, message_p);
 }
 
 //-----------------------------------------------------------------------------

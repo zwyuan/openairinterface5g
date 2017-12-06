@@ -29,4 +29,6 @@ int s1ap_ue_context_release_complete(instance_t instance,
 int s1ap_ue_context_release_req(instance_t instance,
                                 s1ap_ue_release_req_t *ue_release_req_p);
 
+int s1ap_dpcm_enb_propose(instance_t instance, s1ap_dpcm_enb_propose_t* propose_p);
+
 #endif /* S1AP_ENB_CONTEXT_MANAGEMENT_PROCEDURES_H_ */
