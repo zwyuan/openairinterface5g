@@ -259,6 +259,8 @@ inline void ASN_DEBUG(const char *fmt, ...);
 #include "S1ap-UEContextReleaseRequest.h"
 #include "S1ap-Paging.h"
 #include "S1ap-DownlinkNASTransport.h"
+#include "S1ap-DPCM-eNB-Propose-IE.h"
+#include "S1ap-DPCMeNBPropose.h"
 #include "S1ap-InitialUEMessage.h"
 #include "S1ap-UplinkNASTransport.h"
 #include "S1ap-NASNonDeliveryIndication.h"

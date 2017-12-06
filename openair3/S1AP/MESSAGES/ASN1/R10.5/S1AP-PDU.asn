@@ -158,6 +158,11 @@ S1ap-DownlinkNASTransport ::= SEQUENCE {
     ...
 }
 
+S1ap-DPCMeNBPropose ::= SEQUENCE {
+    s1ap-DPCMeNBPropose-ies SEQUENCE (SIZE (0..s1ap-maxProtocolIEs)) OF S1ap-IE,
+    ...
+}
+
 S1ap-InitialUEMessage ::= SEQUENCE {
     s1ap-InitialUEMessage-ies SEQUENCE (SIZE (0..s1ap-maxProtocolIEs)) OF S1ap-IE,
     ...

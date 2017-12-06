@@ -79,6 +79,7 @@ id-downlinkUEAssociatedLPPaTransport	S1ap-ProcedureCode ::= 44
 id-uplinkUEAssociatedLPPaTransport		S1ap-ProcedureCode ::= 45
 id-downlinkNonUEAssociatedLPPaTransport	S1ap-ProcedureCode ::= 46
 id-uplinkNonUEAssociatedLPPaTransport	S1ap-ProcedureCode ::= 47
+id-DPCM-eNB-Propose						S1ap-ProcedureCode ::= 50
 
 -- **************************************************************
 --
@@ -95,6 +96,7 @@ s1ap-maxProtocolIEs						INTEGER ::= 65535
 --
 -- **************************************************************
 
+s1ap-maxNrOfDPCMeNBProposeIEs 			INTEGER ::= 256
 s1ap-maxNrOfCSGs								INTEGER ::= 256
 s1ap-maxNrOfE-RABs							INTEGER ::= 256
 s1ap-maxnoofTAIs								INTEGER ::= 256
@@ -279,5 +281,6 @@ id-MMERelaySupportIndicator						S1ap-ProtocolIE-ID ::= 163
 id-GWContextReleaseIndication					S1ap-ProtocolIE-ID ::= 164
 id-ManagementBasedMDTAllowed					S1ap-ProtocolIE-ID ::= 165
 id-PrivacyIndicator								S1ap-ProtocolIE-ID ::= 166
+id-DPCM-eNB-Propose-IE 							S1ap-ProtocolIE-ID ::= 170
 
 END

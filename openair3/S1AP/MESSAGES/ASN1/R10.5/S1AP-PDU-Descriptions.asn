@@ -29,6 +29,7 @@ FROM S1AP-CommonDataTypes
     S1ap-DownlinkNASTransport,
     S1ap-DownlinkNonUEAssociatedLPPaTransport,
     S1ap-DownlinkS1cdma2000tunneling,
+    S1ap-DPCMeNBPropose,
     S1ap-ENBDirectInformationTransfer,
     S1ap-ENBStatusTransfer,
     S1ap-ENBConfigurationUpdate,
@@ -104,6 +105,7 @@ FROM S1AP-PDU-Contents
     id-downlinkNASTransport,
     id-downlinkNonUEAssociatedLPPaTransport,
     id-DownlinkS1cdma2000tunneling,
+    id-DPCM-eNB-Propose,
     id-eNBStatusTransfer,
     id-ErrorIndication,
     id-HandoverCancel,
@@ -239,6 +241,7 @@ S1AP-ELEMENTARY-PROCEDURES-CLASS-2 S1AP-ELEMENTARY-PROCEDURE ::= {
     e-RABReleaseIndication            |
     paging                             |
     downlinkNASTransport            |
+    DPCM-eNB-Propose                |
     initialUEMessage                |
     uplinkNASTransport                |
     errorIndication                    |
@@ -357,6 +360,12 @@ downlinkNASTransport S1AP-ELEMENTARY-PROCEDURE ::= {
     INITIATING MESSAGE        DownlinkNASTransport
     PROCEDURE CODE            id-downlinkNASTransport
     CRITICALITY                ignore
+}
+
+DPCM-eNB-Propose S1AP-ELEMENTARY-PROCEDURE ::= {
+    INITIATING MESSAGE      DPCMeNBPropose
+    PROCEDURE CODE          id-DPCM-eNB-Propose
+    CRITICALITY             ignore
 }
 
 initialUEMessage S1AP-ELEMENTARY-PROCEDURE ::= {

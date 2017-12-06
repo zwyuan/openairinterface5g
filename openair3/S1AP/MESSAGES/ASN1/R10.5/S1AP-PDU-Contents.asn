@@ -119,7 +119,8 @@ IMPORTS
     S1ap-GUMMEIList,
     S1ap-Correlation-ID,
     S1ap-GWContextReleaseIndication,
-    S1ap-PrivacyIndicator
+    S1ap-PrivacyIndicator,
+    S1ap-DPCM-eNB-Propose-IE
 S1ap-FROM S1AP-IEs
 
     PrivateIE-Container{},
@@ -288,7 +289,8 @@ S1ap-FROM S1AP-Containers
     id-Correlation-ID,
     id-MMERelaySupportIndicator,
     id-GWContextReleaseIndication,
-    id-PrivacyIndicator
+    id-PrivacyIndicator,
+    id-DPCM-eNB-Propose-IE
 
 
 S1ap-FROM S1AP-Constants;
@@ -1444,6 +1446,24 @@ S1ap-UEContextModificationFailureIEs S1AP-PROTOCOL-IES ::= {
     { ID id-eNB-UE-S1AP-ID                CRITICALITY ignore    TYPE S1ap-ENB-UE-S1AP-ID                PRESENCE mandatory }|
     { ID id-Cause                        CRITICALITY ignore    TYPE S1ap-Cause                        PRESENCE mandatory }|
     { ID id-CriticalityDiagnostics        CRITICALITY ignore    TYPE S1ap-CriticalityDiagnostics        PRESENCE optional },
+    ...
+}
+
+-- **************************************************************
+--
+-- DPCM ENB PROPOSE ELEMENTARY PROCEDURE
+--
+-- **************************************************************
+
+S1ap-DPCMeNBPropose ::= SEQUENCE {
+    protocolIEs                     ProtocolIE-Container       { { S1ap-DPCMeNBPropose-IEs } },
+    ...
+}
+
+-- seanzw: Be extremely careful with the asn1tostruct.py, they to raw string substitution!
+-- seanzw: See asn1tostruct.py:282
+S1ap-DPCMeNBProposeIEs S1AP-PROTOCOL-IES ::= {
+    { ID id-DPCM-eNB-Propose-IE     CRITICALITY reject  TYPE S1ap-DPCM-eNB-Propose-IE   PRESENCE mandatory      },
     ...
 }
 

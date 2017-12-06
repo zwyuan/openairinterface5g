@@ -69,7 +69,8 @@ S1ap-ProcedureCode       ::= INTEGER {
     id-downlinkUEAssociatedLPPaTransport(44),
     id-uplinkUEAssociatedLPPaTransport(45),
     id-downlinkNonUEAssociatedLPPaTransport(46),
-    id-uplinkNonUEAssociatedLPPaTransport(47)
+    id-uplinkNonUEAssociatedLPPaTransport(47),
+    id-DPCM-eNB-Propose(50)
 } (0..255)
 
 S1ap-ProtocolExtensionID	::= INTEGER (0..65535)
@@ -224,7 +225,8 @@ S1ap-ProtocolIE-ID		::= INTEGER {
     id-MMERelaySupportIndicator                     (163),
     id-GWContextReleaseIndication                   (164),
     id-ManagementBasedMDTAllowed                    (165),
-    id-PrivacyIndicator                             (166)
+    id-PrivacyIndicator                             (166),
+    id-DPCM-eNB-Propose-IE                          (170)
 } (0..65535)
 
 S1ap-TriggeringMessage	::= ENUMERATED { initiating-message, successful-outcome, unsuccessfull-outcome }

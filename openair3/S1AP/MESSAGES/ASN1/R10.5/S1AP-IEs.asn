@@ -61,6 +61,14 @@ FROM S1AP-CommonDataTypes;
 
 S1ap-IE-Extensions ::= SEQUENCE (SIZE (1..s1ap-maxProtocolExtensions)) OF S1ap-IE
 
+-- DPCM eNB propose states to MME
+
+S1ap-DPCM-eNB-Propose-IE ::= SEQUENCE {
+    dummy                       INTEGER (0..255),
+    iE-Extensions               S1ap-IE-Extensions OPTIONAL,
+    ...
+}
+
 -- A
 
 S1ap-AreaScopeOfMDT ::= CHOICE {
