@@ -543,7 +543,7 @@ typedef struct {
 } s1ap_dpcm_enb_propose_t;
 
 typedef struct {
-  int response;
+  uint8_t response;
   int dummy;
 } s1ap_dpcm_enb_response_t;
 

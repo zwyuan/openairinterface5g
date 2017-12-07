@@ -213,6 +213,9 @@ int rrc_eNB_process_S1AP_UE_CONTEXT_RELEASE_REQ (MessageDef *msg_p, const char *
  */
 int rrc_eNB_process_S1AP_UE_CONTEXT_RELEASE_COMMAND (MessageDef *msg_p, const char *msg_name, instance_t instance);
 
+
+int rrc_eNB_process_S1AP_DPCM_ENB_PESPONSE (MessageDef *msg_p, const char *msg_name, instance_t instance);
+
 #   endif
 # endif /* defined(ENABLE_USE_MME) */
 #endif /* RRC_ENB_S1AP_H_ */

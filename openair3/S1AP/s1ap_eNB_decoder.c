@@ -174,6 +174,14 @@ static int s1ap_eNB_decode_successful_outcome(s1ap_message *message,
     message_id = S1AP_S1_SETUP_LOG;
     break;
 
+  // Handle DPCM propose response.
+  case S1ap_ProcedureCode_id_DPCM_eNB_Propose:
+    ret = s1ap_decode_s1ap_dpcmenbproposeies(
+            &message->msg.s1ap_DPCMeNBProposeIEs, &successfullOutcome_p->value);
+    s1ap_xer_print_s1ap_dpcmenbpropose(s1ap_xer__print2sp, message_string, message);
+    message_id = S1AP_DPCM_ENB_RESPONSE_LOG;
+    break;
+
   default:
     S1AP_ERROR("Unknown procedure ID (%d) for successfull outcome message\n",
                (int)successfullOutcome_p->procedureCode);
@@ -206,6 +214,11 @@ static int s1ap_eNB_decode_unsuccessful_outcome(s1ap_message *message,
   case S1ap_ProcedureCode_id_S1Setup:
     return s1ap_decode_s1ap_s1setupfailureies(
              &message->msg.s1ap_S1SetupFailureIEs, &unSuccessfullOutcome_p->value);
+
+  // Handle DPCM propose response.
+  case S1ap_ProcedureCode_id_DPCM_eNB_Propose:
+    return s1ap_decode_s1ap_dpcmenbproposeies(
+             &message->msg.s1ap_DPCMeNBProposeIEs, &unSuccessfullOutcome_p->value);
 
   default:
     S1AP_ERROR("Unknown procedure ID (%d) for unsuccessfull outcome message\n",

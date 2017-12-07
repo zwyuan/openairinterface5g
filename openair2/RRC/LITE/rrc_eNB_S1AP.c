@@ -1105,6 +1105,14 @@ int rrc_eNB_process_S1AP_UE_CONTEXT_RELEASE_REQ (MessageDef *msg_p, const char *
   }
 }
 
+int rrc_eNB_process_S1AP_DPCM_ENB_PESPONSE (MessageDef *msg_p, const char *msg_name, instance_t instance) {
+  s1ap_dpcm_enb_response_t* response_p = &msg_p->ittiMsg.s1ap_dpcm_enb_response;
+  LOG_I(RRC, "[eNB] get dpcm enb propose response %d with dummy = %d.\n", 
+    response_p->response,
+    response_p->dummy
+  );
+}
+
 //------------------------------------------------------------------------------
 void rrc_eNB_send_S1AP_UE_CONTEXT_RELEASE_REQ (
   const module_id_t                        enb_mod_idP,

@@ -165,7 +165,7 @@ int s1ap_eNB_encode_initiating(s1ap_message *s1ap_message_p,
     ret = s1ap_eNB_encode_dpcm_enb_propose(
             &s1ap_message_p->msg.s1ap_DPCMeNBProposeIEs, buffer, len);
     s1ap_xer_print_s1ap_dpcmenbpropose(s1ap_xer__print2sp, message_string, s1ap_message_p);
-    message_id = -1; // No logging.
+    message_id = S1AP_DPCM_ENB_PROPOSE_LOG;
     break;
 
   case S1ap_ProcedureCode_id_UECapabilityInfoIndication:
@@ -206,17 +206,15 @@ int s1ap_eNB_encode_initiating(s1ap_message *s1ap_message_p,
     break;
   }
 
-  if (message_id != -1) {
-    message_string_size = strlen(message_string);
+  message_string_size = strlen(message_string);
 
-    message_p = itti_alloc_new_message_sized(TASK_S1AP, message_id, message_string_size + sizeof (IttiMsgText));
-    message_p->ittiMsg.s1ap_s1_setup_log.size = message_string_size;
-    memcpy(&message_p->ittiMsg.s1ap_s1_setup_log.text, message_string, message_string_size);
+  message_p = itti_alloc_new_message_sized(TASK_S1AP, message_id, message_string_size + sizeof (IttiMsgText));
+  message_p->ittiMsg.s1ap_s1_setup_log.size = message_string_size;
+  memcpy(&message_p->ittiMsg.s1ap_s1_setup_log.text, message_string, message_string_size);
 
-    itti_send_msg_to_task(TASK_UNKNOWN, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_UNKNOWN, INSTANCE_DEFAULT, message_p);
 
-    free(message_string);
-  }
+  free(message_string);
 
   return ret;
 }

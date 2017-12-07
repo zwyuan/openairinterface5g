@@ -20,6 +20,8 @@
  */
 
 /* Messages for S1AP logging */
+MESSAGE_DEF(S1AP_DPCM_ENB_PROPOSE_LOG      , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_dpcm_enb_propose_log)
+MESSAGE_DEF(S1AP_DPCM_ENB_RESPONSE_LOG     , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_dpcm_enb_response_log)
 MESSAGE_DEF(S1AP_UPLINK_NAS_LOG            , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_uplink_nas_log)
 MESSAGE_DEF(S1AP_UE_CAPABILITY_IND_LOG     , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_ue_capability_ind_log)
 MESSAGE_DEF(S1AP_INITIAL_CONTEXT_SETUP_LOG , MESSAGE_PRIORITY_MED, IttiMsgText                      , s1ap_initial_context_setup_log)
@@ -61,9 +63,9 @@ MESSAGE_DEF(S1AP_DOWNLINK_NAS              , MESSAGE_PRIORITY_MED, s1ap_downlink
 MESSAGE_DEF(S1AP_INITIAL_CONTEXT_SETUP_REQ , MESSAGE_PRIORITY_MED, s1ap_initial_context_setup_req_t , s1ap_initial_context_setup_req )
 MESSAGE_DEF(S1AP_UE_CTXT_MODIFICATION_REQ  , MESSAGE_PRIORITY_MED, s1ap_ue_ctxt_modification_req_t  , s1ap_ue_ctxt_modification_req)
 MESSAGE_DEF(S1AP_PAGING_IND                , MESSAGE_PRIORITY_MED, s1ap_paging_ind_t                , s1ap_paging_ind )
-MESSAGE_DEF(S1AP_E_RAB_SETUP_REQ           , MESSAGE_PRIORITY_MED, s1ap_e_rab_setup_req_t        , s1ap_e_rab_setup_req )
+MESSAGE_DEF(S1AP_E_RAB_SETUP_REQ           , MESSAGE_PRIORITY_MED, s1ap_e_rab_setup_req_t           , s1ap_e_rab_setup_req )
 MESSAGE_DEF(S1AP_UE_CONTEXT_RELEASE_COMMAND, MESSAGE_PRIORITY_MED, s1ap_ue_release_command_t        , s1ap_ue_release_command)
-MESSAGE_DEF(S1AP_DPCM_ENB_PESPONSE         , MESSAGE_PRIORITY_MED, s1ap_dpcm_enb_response_t          , s1ap_dpcm_enb_response)
+MESSAGE_DEF(S1AP_DPCM_ENB_PESPONSE         , MESSAGE_PRIORITY_MED, s1ap_dpcm_enb_response_t         , s1ap_dpcm_enb_response)
 
 /* S1AP <-> RRC messages (can be initiated either by MME or eNB) */
 MESSAGE_DEF(S1AP_UE_CONTEXT_RELEASE_REQ    , MESSAGE_PRIORITY_MED, s1ap_ue_release_req_t            , s1ap_ue_release_req)

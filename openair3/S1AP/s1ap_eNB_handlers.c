@@ -75,12 +75,15 @@ int s1ap_eNB_handle_ue_context_release_command(uint32_t               assoc_id,
     uint32_t               stream,
     struct s1ap_message_s *s1ap_message_p);
 
-
 static
 int s1ap_eNB_handle_e_rab_setup_request(uint32_t               assoc_id,
 					uint32_t               stream,
 					struct s1ap_message_s *s1ap_message_p);
 
+static
+int s1ap_eNB_handle_dpcm_enb_propose_response(uint32_t               assoc_id,
+                                      uint32_t               stream,
+                                      struct s1ap_message_s *message_p);
 
 /* Handlers matrix. Only eNB related procedure present here */
 s1ap_message_decoded_callback messages_callback[][3] = {
@@ -133,6 +136,10 @@ s1ap_message_decoded_callback messages_callback[][3] = {
   { 0, 0, 0 }, /* UplinkUEAssociatedLPPaTransport */
   { 0, 0, 0 }, /* DownlinkNonUEAssociatedLPPaTransport */
   { 0, 0, 0 }, /* UplinkNonUEAssociatedLPPaTransport */
+
+  {0, 0, 0},   /* Place holder: unused. 48 */
+  {0, 0, 0},   /* Place holder: unused. 49 */
+  {0, s1ap_eNB_handle_dpcm_enb_propose_response, s1ap_eNB_handle_dpcm_enb_propose_response}, /* DPCM-eNB-Propose: 50 */
 #endif
 };
 
@@ -223,6 +230,32 @@ int s1ap_eNB_handle_message(uint32_t assoc_id, int32_t stream,
   /* Calling the right handler */
   return (*messages_callback[message.procedureCode][message.direction-1])
          (assoc_id, stream, &message);
+}
+
+static
+int s1ap_eNB_handle_dpcm_enb_propose_response(uint32_t               assoc_id,
+                                      uint32_t               stream,
+                                      struct s1ap_message_s *message_p) {
+  S1ap_DPCMeNBProposeIEs_t* ies = &message_p->msg.s1ap_DPCMeNBProposeIEs;
+  S1AP_INFO("[SCTP %d] Received dpcm propose response on stream %d with dummy = %d\n", 
+    assoc_id, stream, ies->dpcM_eNB_Propose_IE.dummy
+  );
+
+  MessageDef* itti_message_p = itti_alloc_new_message(TASK_S1AP, S1AP_DPCM_ENB_PESPONSE);
+  s1ap_dpcm_enb_response_t* response_p = &itti_message_p->ittiMsg.s1ap_dpcm_enb_response;
+
+  response_p->dummy = ies->dpcM_eNB_Propose_IE.dummy;
+  if (message_p->direction == S1AP_PDU_PR_successfulOutcome) {
+    response_p->response = 1;
+  } else {
+    response_p->response = 0;
+  }
+
+  S1AP_INFO("[SCTP %d] [P13-1-RESPONSE] received DPCM response %d with dummy %d\n",
+    assoc_id, response_p->response, response_p->dummy);
+  itti_send_msg_to_task(TASK_RRC_ENB, INSTANCE_DEFAULT, itti_message_p);
+
+  return 0;
 }
 
 static
