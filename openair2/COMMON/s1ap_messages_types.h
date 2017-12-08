@@ -538,13 +538,14 @@ typedef struct s1ap_ue_release_req_s {
 } s1ap_ue_release_req_t, s1ap_ue_release_resp_t;
 
 //------------------------------------------------- DPCM messages -------------------------//
+#include "../../../cmake_targets/lte_build_oai/build/CMakeFiles/Rel14/DPCMStates.h"
 typedef struct {
-  int dummy;
+  DPCMStates_t states;
 } s1ap_dpcm_enb_propose_t;
 
 typedef struct {
   uint8_t response;
-  int dummy;
+  DPCMStates_t states;
 } s1ap_dpcm_enb_response_t;
 
 #endif /* S1AP_MESSAGES_TYPES_H_ */

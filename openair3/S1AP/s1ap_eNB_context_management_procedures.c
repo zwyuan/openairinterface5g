@@ -263,7 +263,7 @@ int s1ap_dpcm_enb_propose(instance_t instance, s1ap_dpcm_enb_propose_t* propose_
   S1ap_DPCMeNBProposeIEs_t* propose_ies_p = &message.msg.s1ap_DPCMeNBProposeIEs;
 
   // Set a magic dummy number to 42.
-  propose_ies_p->dpcM_eNB_Propose_IE.dummy = propose_p->dummy;
+  propose_ies_p->dpcM_eNB_Propose_IE.dpcm_states = propose_p->states;
 
   if (s1ap_eNB_encode_pdu(&message, &buffer, &length) < 0) {
     /* Encode procedure has failed... */

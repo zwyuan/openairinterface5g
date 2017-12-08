@@ -1109,7 +1109,7 @@ int rrc_eNB_process_S1AP_DPCM_ENB_PESPONSE (MessageDef *msg_p, const char *msg_n
   s1ap_dpcm_enb_response_t* response_p = &msg_p->ittiMsg.s1ap_dpcm_enb_response;
   LOG_I(RRC, "[eNB] get dpcm enb propose response %d with dummy = %d.\n", 
     response_p->response,
-    response_p->dummy
+    response_p->states
   );
 }
 

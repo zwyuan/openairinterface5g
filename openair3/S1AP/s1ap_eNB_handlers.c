@@ -238,13 +238,13 @@ int s1ap_eNB_handle_dpcm_enb_propose_response(uint32_t               assoc_id,
                                       struct s1ap_message_s *message_p) {
   S1ap_DPCMeNBProposeIEs_t* ies = &message_p->msg.s1ap_DPCMeNBProposeIEs;
   S1AP_INFO("[SCTP %d] Received dpcm propose response on stream %d with dummy = %d\n", 
-    assoc_id, stream, ies->dpcM_eNB_Propose_IE.dummy
+    assoc_id, stream, ies->dpcM_eNB_Propose_IE.dpcm_states
   );
 
   MessageDef* itti_message_p = itti_alloc_new_message(TASK_S1AP, S1AP_DPCM_ENB_PESPONSE);
   s1ap_dpcm_enb_response_t* response_p = &itti_message_p->ittiMsg.s1ap_dpcm_enb_response;
 
-  response_p->dummy = ies->dpcM_eNB_Propose_IE.dummy;
+  response_p->states = ies->dpcM_eNB_Propose_IE.dpcm_states;
   if (message_p->direction == S1AP_PDU_PR_successfulOutcome) {
     response_p->response = 1;
   } else {
@@ -252,7 +252,7 @@ int s1ap_eNB_handle_dpcm_enb_propose_response(uint32_t               assoc_id,
   }
 
   S1AP_INFO("[SCTP %d] [P13-1-RESPONSE] received DPCM response %d with dummy %d\n",
-    assoc_id, response_p->response, response_p->dummy);
+    assoc_id, response_p->response, response_p->states);
   itti_send_msg_to_task(TASK_RRC_ENB, INSTANCE_DEFAULT, itti_message_p);
 
   return 0;

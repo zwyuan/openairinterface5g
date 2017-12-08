@@ -63,8 +63,24 @@ S1ap-IE-Extensions ::= SEQUENCE (SIZE (1..s1ap-maxProtocolExtensions)) OF S1ap-I
 
 -- DPCM eNB propose states to MME
 
+DPCMStates ::=                        SEQUENCE {
+    dpcmSecurityContext                   DPCMSecurityContext,
+    dpcmQos                               BIT STRING (SIZE (144)),
+    dpcmIp                                BIT STRING (SIZE (168)),
+    dpcmId                                INTEGER(0..4294967295)
+}
+
+DPCMSecurityContext ::=             SEQUENCE {
+    timestamp                           TIMESTAMP,
+    randomValue                         INTEGER(0..4294967295),
+    certificate                         INTEGER(0..4294967295),
+    privateKey                          INTEGER(0..4294967295)
+}
+
+TIMESTAMP ::= INTEGER(0..4294967295)
+
 S1ap-DPCM-eNB-Propose-IE ::= SEQUENCE {
-    dummy                       INTEGER (0..255),
+    dpcm-states                       DPCMStates,
     iE-Extensions               S1ap-IE-Extensions OPTIONAL,
     ...
 }
