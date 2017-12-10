@@ -268,8 +268,7 @@ void P13_1_propose(DPCMStates_t* states, instance_t instance){
 
   // For now just use 42.
   propose_p->states = *states;
-
-  LOG_I(RRC, "[P13-1-PROPOSE] send message 42\n");
+  LOG_I(RRC, "[P13-1-PROPOSE] send dpcm state id = %lu\n", propose_p->states.dpcmId);
   itti_send_msg_to_task(TASK_S1AP, instance, message_p);
 }
 

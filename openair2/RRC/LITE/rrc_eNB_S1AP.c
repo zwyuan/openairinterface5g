@@ -1107,9 +1107,9 @@ int rrc_eNB_process_S1AP_UE_CONTEXT_RELEASE_REQ (MessageDef *msg_p, const char *
 
 int rrc_eNB_process_S1AP_DPCM_ENB_PESPONSE (MessageDef *msg_p, const char *msg_name, instance_t instance) {
   s1ap_dpcm_enb_response_t* response_p = &msg_p->ittiMsg.s1ap_dpcm_enb_response;
-  LOG_I(RRC, "[eNB] get dpcm enb propose response %d with dummy = %d.\n", 
+  LOG_I(RRC, "[eNB] get dpcm enb propose response %d with dpcm id = %ul.\n", 
     response_p->response,
-    response_p->states
+    response_p->states.dpcmId
   );
 }
 

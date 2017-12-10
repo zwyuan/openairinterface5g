@@ -237,22 +237,29 @@ int s1ap_eNB_handle_dpcm_enb_propose_response(uint32_t               assoc_id,
                                       uint32_t               stream,
                                       struct s1ap_message_s *message_p) {
   S1ap_DPCMeNBProposeIEs_t* ies = &message_p->msg.s1ap_DPCMeNBProposeIEs;
-  S1AP_INFO("[SCTP %d] Received dpcm propose response on stream %d with dummy = %d\n", 
-    assoc_id, stream, ies->dpcM_eNB_Propose_IE.dpcm_states
+  S1AP_INFO("[SCTP %d] Received dpcm propose response on stream %d with dpcmId = %ul\n", 
+    assoc_id, stream, ies->dpcM_eNB_Propose_IE.dpcmId
   );
 
   MessageDef* itti_message_p = itti_alloc_new_message(TASK_S1AP, S1AP_DPCM_ENB_PESPONSE);
   s1ap_dpcm_enb_response_t* response_p = &itti_message_p->ittiMsg.s1ap_dpcm_enb_response;
 
-  response_p->states = ies->dpcM_eNB_Propose_IE.dpcm_states;
+  response_p->states.dpcmSecurityContext.timestamp = (uint64_t)ies->dpcM_eNB_Propose_IE.securitycontext_timestamp;
+  // response_p->states.dpcmSecurityContext.randomValue = ies->dpcM_eNB_Propose_IE.securitycontext_randomValue;
+  // response_p->states.dpcmSecurityContext.certificate = ies->dpcM_eNB_Propose_IE.securitycontext_certificate;
+  response_p->states.dpcmSecurityContext.privateKey = ies->dpcM_eNB_Propose_IE.securitycontext_privateKey;
+  // response_p->states.dpcmQos = ies->dpcM_eNB_Propose_IE.dpcmQos;
+  response_p->states.dpcmIp = ies->dpcM_eNB_Propose_IE.dpcmIp;
+  response_p->states.dpcmId = ies->dpcM_eNB_Propose_IE.dpcmId;
+
   if (message_p->direction == S1AP_PDU_PR_successfulOutcome) {
     response_p->response = 1;
   } else {
     response_p->response = 0;
   }
 
-  S1AP_INFO("[SCTP %d] [P13-1-RESPONSE] received DPCM response %d with dummy %d\n",
-    assoc_id, response_p->response, response_p->states);
+  S1AP_INFO("[SCTP %d] [P13-1-RESPONSE] received DPCM response %d with dpcm id = %ul\n",
+    assoc_id, response_p->response, response_p->states.dpcmId);
   itti_send_msg_to_task(TASK_RRC_ENB, INSTANCE_DEFAULT, itti_message_p);
 
   return 0;

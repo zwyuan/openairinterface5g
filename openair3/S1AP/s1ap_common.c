@@ -177,6 +177,7 @@ S1ap_IE_t *s1ap_new_ie(
 
   if (ANY_fromType_aper(&buff->value, type, sptr) < 0) {
     fprintf(stderr, "Encoding of %s failed\n", type->name);
+    S1AP_INFO("[ZWU] s1ap_new_ie ANY_fromType_aper failed! with type = (%s)\n", type->name);
     free(buff);
     return NULL;
   }

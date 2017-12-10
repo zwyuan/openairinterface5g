@@ -263,7 +263,14 @@ int s1ap_dpcm_enb_propose(instance_t instance, s1ap_dpcm_enb_propose_t* propose_
   S1ap_DPCMeNBProposeIEs_t* propose_ies_p = &message.msg.s1ap_DPCMeNBProposeIEs;
 
   // Set a magic dummy number to 42.
-  propose_ies_p->dpcM_eNB_Propose_IE.dpcm_states = propose_p->states;
+  propose_ies_p->dpcM_eNB_Propose_IE.securitycontext_timestamp = (unsigned long) propose_p->states.dpcmSecurityContext.timestamp;
+  // propose_ies_p->dpcM_eNB_Propose_IE.securitycontext_randomValue = propose_p->states.dpcmSecurityContext.randomValue;
+  // propose_ies_p->dpcM_eNB_Propose_IE.securitycontext_certificate = propose_p->states.dpcmSecurityContext.certificate;
+  propose_ies_p->dpcM_eNB_Propose_IE.securitycontext_privateKey = propose_p->states.dpcmSecurityContext.privateKey;
+  // propose_ies_p->dpcM_eNB_Propose_IE.dpcmQos = propose_p->states.dpcmQos;
+  propose_ies_p->dpcM_eNB_Propose_IE.dpcmIp = propose_p->states.dpcmIp;
+  propose_ies_p->dpcM_eNB_Propose_IE.dpcmId = propose_p->states.dpcmId;
+
 
   if (s1ap_eNB_encode_pdu(&message, &buffer, &length) < 0) {
     /* Encode procedure has failed... */
